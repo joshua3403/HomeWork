@@ -78,4 +78,12 @@ dkms.conf
 # End of https://www.gitignore.io/api/c,c++
 
 .vs
+<<<<<<< HEAD
 x64/
+=======
+*.tlog
+.vs/My Homework/v16/.suo
+*.log
+.vs/My Homework/v16/.suo
+GrayScale.bmp
+>>>>>>> 7c3b7a25d47928ff304863cc2e7a88ffb8662545
