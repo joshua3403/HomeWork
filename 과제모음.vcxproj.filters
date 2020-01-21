@@ -21,40 +21,7 @@
     <ClCompile Include="Bitmap(GrayScale).cpp">
       <Filter>내 소스코드</Filter>
     </ClCompile>
-    <ClCompile Include="Encryption-Decryption.cpp">
-      <Filter>내 소스코드</Filter>
-    </ClCompile>
     <ClCompile Include="File Packing.cpp">
-      <Filter>내 소스코드</Filter>
-    </ClCompile>
-    <ClCompile Include="GatCha.cpp">
-      <Filter>내 소스코드</Filter>
-    </ClCompile>
-    <ClCompile Include="Recursive call.cpp">
-      <Filter>내 소스코드</Filter>
-    </ClCompile>
-    <ClCompile Include="Recursive to For.cpp">
-      <Filter>내 소스코드</Filter>
-    </ClCompile>
-    <ClCompile Include="Sort.cpp">
-      <Filter>내 소스코드</Filter>
-    </ClCompile>
-    <ClCompile Include="Timing game.cpp">
-      <Filter>내 소스코드</Filter>
-    </ClCompile>
-    <ClCompile Include="Unit Create(Queue).cpp">
-      <Filter>내 소스코드</Filter>
-    </ClCompile>
-    <ClCompile Include="Recursive call(Sol).cpp">
-      <Filter>예시코드</Filter>
-    </ClCompile>
-    <ClCompile Include="Shift-Bit.cpp">
-      <Filter>예시코드</Filter>
-    </ClCompile>
-    <ClCompile Include="Shift-Byte.cpp">
-      <Filter>예시코드</Filter>
-    </ClCompile>
-    <ClCompile Include="Dictionary.cpp">
       <Filter>내 소스코드</Filter>
     </ClCompile>
   </ItemGroup>
