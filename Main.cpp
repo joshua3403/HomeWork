@@ -5,11 +5,8 @@
 					main에서는 모든 오브젝트의 베이스가되는 클래스의 포인터 배열로 모든 오브젝트를 관리한다.
 */
 
+#include "stdafx.h"
 
-#include <iostream>
-#include <cstdio>
-#include <Windows.h>
-#include <conio.h>
 #include "BaseObject.h"
 #include "OneStar.h"
 #include "TwoStar.h"

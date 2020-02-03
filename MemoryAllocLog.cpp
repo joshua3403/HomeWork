@@ -2,9 +2,10 @@
 	MemoryAllocLog.cpp
 	프로그램 설명 : 메모리를 할당하고 해제하는 과정에서 로그를 출력하여 추적하자
 */
-
+#include "stdafx.h"
 #include <iostream>
 #include <cstdio>
+#include "My_New.h"
 
 using namespace std;
 
@@ -98,5 +99,6 @@ void PrintAlloc(void)
 
 int main()
 {
+	int temp = new int;
 	return 0;
 }
