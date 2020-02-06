@@ -85,7 +85,7 @@ namespace MemoryControl {
 			{
 				if (alloc_array[i].pPtr != nullptr)
 				{
-					fprintf_s(file, "Leak [0x%08p][ %d] %s : %d \n", alloc_array[i].pPtr, alloc_array[i].iSize, alloc_array[i].szFile, alloc_array[i].iLine);
+					fprintf_s(file, "Leak [0x%08p][%08d] %s : %d \n", alloc_array[i].pPtr, alloc_array[i].iSize, alloc_array[i].szFile, alloc_array[i].iLine);
 				}
 			}
 		}
@@ -191,6 +191,11 @@ namespace MemoryControl {
 
 	static MemoryAllocator c_Memory_Controler;
 }
+
+// 헤더부에는 new와 delete 선언만 남기고
+// cpp에 정의와 선언을 넣어라 --> 남들이 안쓸꺼니까
+// 링크드 리스트로 만들 경우 생성자에서는 new 가 아닌 malloc을 사용해야 한다
+// 파일은 열고 쓰고 닫고.
 
 void* operator new(size_t size, const char* fileName, int line)
 {

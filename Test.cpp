@@ -1,27 +1,36 @@
 #include "stdafx.h"
-#include "My_New.h"
+#include "CList(STL).h"
+#include <list>
 
-class test
-{
-public:
-	test()
-	{
-		std::cout << "积己磊" << std::endl;
-	}
 
-	~test()
-	{
-		std::cout << "家戈磊" << std::endl;
-	}
-};
+using namespace std;
 
 int main()
 {
 
+	CList<int> test;
 
-	test* temp_array = new test[10];
-	char* temp = new char;
+	test.push_front(5);
+	test.push_back(19);
 
-	delete temp_array;
+	CList<int>::iterator it = test.begin();
+
+	cout << *it << endl;
+
+	test.clear();
+
+
+	test.push_back(15);
+	test.push_back(1325);
+	
+	it = test.end();
+
+	test.erase(it);
+
+	cout << *test.end() << endl;
+
+
+	cout << "场车嚼聪促" << endl;
+	
 	return 0;
 }
