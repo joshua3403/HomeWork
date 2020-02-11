@@ -1,6 +1,19 @@
 #include "stdafx.h"
-#include "CList(STL).h"
-#include <list>
+#include "Profiler.h"
+
+class tempClass
+{
+public:
+	tempClass()
+	{
+		std::cout << "积己磊 积己" << std::endl;
+	}
+
+	~tempClass()
+	{
+		std::cout << "家戈磊 积己" << std::endl;
+	}
+};
 
 
 using namespace std;
@@ -8,29 +21,18 @@ using namespace std;
 int main()
 {
 
-	CList<int> test;
+	Joshua::ProfilerList.PushBack(L"here");
 
-	test.push_front(5);
-	test.push_back(19);
-
-	CList<int>::iterator it = test.begin();
-
-	cout << *it << endl;
-
-	test.clear();
+	for (int i = 0; i < 10; ++i)
+	{
+		tempClass* t = new tempClass[3];
 
 
-	test.push_back(15);
-	test.push_back(1325);
-	
-	it = test.end();
+		delete[] t;
+		Joshua::ProfilerList.PutNewData(L"here");
 
-	test.erase(it);
+	}
 
-	cout << *test.end() << endl;
-
-
-	cout << "场车嚼聪促" << endl;
-	
+	std::cout << "肯丰" << std::endl;
 	return 0;
 }

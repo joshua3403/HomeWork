@@ -172,6 +172,7 @@ public:
 	{
 		return _size;
 	};
+
 	bool empty()
 	{
 		if (_size > 0)

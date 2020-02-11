@@ -11,4 +11,5 @@
 #include <conio.h>
 #include <time.h>
 #include <string>
+#include <strsafe.h>
 

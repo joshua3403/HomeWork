@@ -29,15 +29,15 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>내 소스코드</Filter>
     </ClCompile>
-    <ClCompile Include="CList%28STL%29.h">
-      <Filter>헤더 파일</Filter>
-    </ClCompile>
     <ClCompile Include="Test.cpp">
       <Filter>내 소스코드</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Profiler.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
