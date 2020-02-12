@@ -23,15 +23,8 @@ int main()
 
 	Joshua::ProfilerList.PushBack(L"here");
 
-	for (int i = 0; i < 10; ++i)
-	{
-		tempClass* t = new tempClass[3];
-
-
-		delete[] t;
-		Joshua::ProfilerList.PutNewData(L"here");
-
-	}
+	Sleep(1000);
+	Joshua::ProfilerList.PutNewData(L"here");
 
 	std::cout << "¿Ï·á" << std::endl;
 	return 0;

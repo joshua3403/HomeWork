@@ -39,10 +39,9 @@ namespace Joshua {
 
 		void GetProcessTime(double time)
 		{
-			// 밀리세컨드 단위
+			// 마이크로세컨드 단위
 			time *= 1000000.0;
-			if (iCall > 4)
-			{
+
 				if (time < iMin[0])
 				{
 					__int64 temp = iMin[0];
@@ -53,10 +52,7 @@ namespace Joshua {
 				{
 					iMin[1] = time;
 				}
-				else
-				{
-					iTotalTime += time;
-				}
+
 
 				if (time > iMax[1])
 				{
@@ -68,17 +64,8 @@ namespace Joshua {
 				{
 					iMax[0] = time;
 				}
-				else
-				{
-					iTotalTime += time;
-				}
-			}
-			else
-			{
+
 				iTotalTime += time;
-			}
-
-
 			iCall++;
 		}
 	};
@@ -187,7 +174,15 @@ namespace Joshua {
 			Node* nowNode = head;
 			while (nowNode != nullptr)
 			{
-				fwprintf(file, L"%-10s | %.4f | %.4f㎲ | %.4f㎲ | %d \n", nowNode->szName, ((double)nowNode->iTotalTime / (double)(nowNode->iCall - 4.0))/ 1000000, (double)(nowNode->iMin[0]/ 1000000.0), (double)(nowNode->iMax[1] / 1000000.0), nowNode->iCall);
+				if (nowNode->iCall > 4)
+				{
+					fwprintf(file, L"%-10s | %.4f ㎲ | %.4f ㎲ | %.4f ㎲ | %d \n", nowNode->szName, ((double)nowNode->iTotalTime / (double)(nowNode->iCall - 4.0)) , (double)(nowNode->iMin[0] ), (double)(nowNode->iMax[1] ), nowNode->iCall);
+				}
+				else
+				{
+					fwprintf(file, L"%-10s | %.4f ㎲ | %.4f㎲ | %.4f㎲ | %d \n", nowNode->szName, ((double)nowNode->iTotalTime / (double)(nowNode->iCall)), (double)(nowNode->iMin[0] ), (double)(nowNode->iMax[1] ), nowNode->iCall);
+				}
+
 
 				nowNode = nowNode->Next;
 			}
