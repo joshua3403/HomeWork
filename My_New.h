@@ -328,12 +328,12 @@ namespace MemoryControl {
 			}
 
 		FREE:
-			MemoryAllocList->Erase(findNode);
 			free(ptr);
+			MemoryAllocList->Erase(findNode);
 			return;
 		FREEARRAY:
-			MemoryAllocList->Erase(findArrayNode);
 			free((void*)((int*)ptr - 2));
+			MemoryAllocList->Erase(findArrayNode);
 			return;
 		}
 	};
