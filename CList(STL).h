@@ -116,25 +116,6 @@ public:
 		return iterator(_tail);
 	}
 
-	void push_front(T data)
-	{
-		Node* newNode = new Node(data);
-
-		if (_size == 0)
-		{
-			newNode->_Next = _tail;
-			_tail->_Prev = newNode;
-			_head = newNode;
-		}
-		else
-		{
-			newNode->_Next = _head;
-			_head->_Next = newNode;
-			_head = newNode;
-		}
-		_size++;
-
-	}
 	void push_back(T data)
 	{
 		Node* newNode = new Node(data);

@@ -33,8 +33,6 @@ namespace Joshua {
 				iMin[i] = LLONG_MAX;
 				iMax[i] = 0;
 			}
-
-
 		}
 
 		void GetProcessTime(double time)
@@ -148,7 +146,6 @@ namespace Joshua {
 				throw 1;
 			}
 
-			// ÃÊ´ÜÀ§
 			double processTime = (double)(End.QuadPart - nowNode->lStartTime.QuadPart) / (double)(Freq.QuadPart);
 			
 				
@@ -176,6 +173,12 @@ namespace Joshua {
 			{
 				if (nowNode->iCall > 4)
 				{
+					for (int i = 0; i < 2; i++)
+					{
+						nowNode->iTotalTime -= nowNode->iMax[i];
+						nowNode->iTotalTime -= nowNode->iMin[i];
+					}
+					
 					fwprintf(file, L"%-10s | %.4f §Á | %.4f §Á | %.4f §Á | %d \n", nowNode->szName, ((double)nowNode->iTotalTime / (double)(nowNode->iCall - 4.0)) , (double)(nowNode->iMin[0] ), (double)(nowNode->iMax[1] ), nowNode->iCall);
 				}
 				else

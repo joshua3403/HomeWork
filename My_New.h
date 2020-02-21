@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "stdafx.h"
 
 #define MAX_FILENAME_LENGTH 255
@@ -22,15 +21,14 @@ namespace MemoryControl {
 	public:
 
 		Node* Next;
-
+		Node* Prev;
 		Node()
 		{
-
+			Next = Prev = nullptr;
 		}
 
 		~Node()
 		{
-			std::cout << "Node deleted" << std::endl;
 		}
 
 	};
@@ -62,7 +60,6 @@ namespace MemoryControl {
 
 		bool Push_Back(void* ptr, int Size, bool isArray,const char* fileName, int Line)
 		{
-			std::cout << "Here" << std::endl;
 			// 노드를 생성자를 통해 생성하고 포인터또한 생성한다.
 			Node* newNode = (Node*)malloc(sizeof(Node));
 
@@ -77,6 +74,7 @@ namespace MemoryControl {
 
 			if (IsEmpty())
 			{
+				newNode->Next = tail;
 				head = newNode;
 			}
 			else
@@ -117,6 +115,9 @@ namespace MemoryControl {
 				return false;
 			}
 
+			if (ptr == nullptr)
+				return false;
+
 			Node* NowNode = head;
 			Node* NextNode = head->Next;
 
@@ -124,9 +125,10 @@ namespace MemoryControl {
 			// 찾고자 하는 노드가 헤드라면
 			if (NowNode->pPtr == ((Node*)ptr)->pPtr)
 			{
-				head = head->Next;
+				Node* temp = head->Next;
 				head = nullptr;
 				delete head;
+				head = temp;
 				iNodeSize--;
 				return true;
 			}
@@ -208,7 +210,10 @@ namespace MemoryControl {
 		{
 			MemoryAllocList = (List*)malloc(sizeof * (MemoryAllocList));
 			MemoryAllocList->iNodeSize = 0;
-			MemoryAllocList->head = MemoryAllocList->tail = nullptr;
+			MemoryAllocList->head = new Node;
+			MemoryAllocList->tail = new Node;
+			MemoryAllocList->head->Next = MemoryAllocList->tail;
+			MemoryAllocList->iNodeSize = 0;			
 			time_t now = time(NULL);
 			struct tm date;
 			setlocale(LC_ALL, "Korean");
@@ -292,7 +297,6 @@ namespace MemoryControl {
 				return;
 			}
 
-			int index;
 			Node* findNode = MemoryAllocList->Find(ptr);
 			Node* findArrayNode = MemoryAllocList->Find((void*)((int*)ptr - 2));
 
@@ -309,7 +313,7 @@ namespace MemoryControl {
 				goto FREEARRAY;
 			}
 
-			if (findNode != nullptr && findNode == nullptr)
+			if (findNode != nullptr && findArrayNode == nullptr)
 			{
 				current_alloc_index = (MemoryAllocList->iNodeSize + current_free_index) % MAX_TRACE_ALLOC_COUNT;
 				++free_count;
@@ -346,30 +350,36 @@ namespace MemoryControl {
 // 링크드 리스트로 만들 경우 생성자에서는 new 가 아닌 malloc을 사용해야 한다
 // 파일은 열고 쓰고 닫고.
 
-void* operator new(size_t size, const char* fileName, int line)
+void* operator new(size_t size)
+{
+	void* p = malloc(size);
+	return p;
+}
+
+void* operator new(size_t size, const char* fileName,const int line) throw()
 {
 	return MemoryControl::c_Memory_Controler.Alloc(size, fileName, line, false);
 }
 
-void* operator new[](size_t size, const char* fileName, int line)
+void* operator new[](size_t size, const char* fileName,const int line) throw()
 {
 	return MemoryControl::c_Memory_Controler.Alloc(size, fileName, line, true);
 }
 
-void operator delete(void* ptr)
+void operator delete(void* ptr) throw()
 {
 	return MemoryControl::c_Memory_Controler.Free(ptr);
 }
 
-void operator delete[](void* ptr)
+void operator delete[](void* ptr) throw()
 {
 	return operator delete(ptr);
 }
 
-void operator delete (void* p, char* File, int Line)
+void operator delete (void* p, const char* File,const int Line)
 {
 }
-void operator delete[](void* p, char* File, int Line)
+void operator delete[](void* p, const char* File,const int Line)
 {
 }
 
