@@ -146,13 +146,16 @@
     <Image Include="..\..\..\Downloads\sample2.bmp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="CExceptClass.cpp" />
+    <ClCompile Include="CMessage.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Test.cpp" />
+    <ClCompile Include="StreamBufferMain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CExceptClass.h" />
+    <ClInclude Include="CMessage.h" />
     <ClInclude Include="New(Overriding).h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TextParser.h" />

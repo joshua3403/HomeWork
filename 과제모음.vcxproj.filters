@@ -29,10 +29,13 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>내 소스코드</Filter>
     </ClCompile>
-    <ClCompile Include="Test.cpp">
+    <ClCompile Include="CExceptClass.cpp">
       <Filter>내 소스코드</Filter>
     </ClCompile>
-    <ClCompile Include="Main.cpp">
+    <ClCompile Include="CMessage.cpp">
+      <Filter>내 소스코드</Filter>
+    </ClCompile>
+    <ClCompile Include="StreamBufferMain.cpp">
       <Filter>내 소스코드</Filter>
     </ClCompile>
   </ItemGroup>
@@ -48,6 +51,12 @@
     </ClInclude>
     <ClInclude Include="TwoStar.h">
       <Filter>내 소스코드</Filter>
+    </ClInclude>
+    <ClInclude Include="CExceptClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CMessage.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
