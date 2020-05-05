@@ -39,7 +39,6 @@ CMessage& CMessage::operator<<(BYTE byValue)
 	// 남은 공간보다 삽입하고자 하는 크기가 더 크면 남아있는 크기만큼 삽입
 	if (realSize < 0)
 	{
-
 		IncreaseBufferSize(eBUFFER_UPSCALE_BYTE);
 		realSize = sizeof(byValue);
 
@@ -71,7 +70,6 @@ CMessage& CMessage::operator<<(char chValue)
 	// 남은 공간보다 삽입하고자 하는 크기가 더 크면 남아있는 크기만큼 삽입
 	if (realSize < 0)
 	{
-
 		IncreaseBufferSize(eBUFFER_UPSCALE_BYTE);
 		realSize = sizeof(chValue);
 
@@ -103,7 +101,6 @@ CMessage& CMessage::operator<<(short shValue)
 	// 남은 공간보다 삽입하고자 하는 크기가 더 크면 남아있는 크기만큼 삽입
 	if (realSize < 0)
 	{
-
 		IncreaseBufferSize(eBUFFER_UPSCALE_SHORT);
 		realSize = sizeof(shValue);
 
@@ -135,7 +132,6 @@ CMessage& CMessage::operator<<(WORD wValue)
 	// 남은 공간보다 삽입하고자 하는 크기가 더 크면 남아있는 크기만큼 삽입
 	if (realSize < 0)
 	{
-
 		IncreaseBufferSize(eBUFFER_UPSCALE_SHORT);
 		realSize = sizeof(wValue);
 
@@ -167,7 +163,6 @@ CMessage& CMessage::operator<<(int iValue)
 	// 남은 공간보다 삽입하고자 하는 크기가 더 크면 남아있는 크기만큼 삽입
 	if (realSize < 0)
 	{
-
 		IncreaseBufferSize(eBUFFER_UPSCALE_INT);
 		realSize = sizeof(iValue);
 
@@ -199,7 +194,6 @@ CMessage& CMessage::operator<<(DWORD dwValue)
 	// 남은 공간보다 삽입하고자 하는 크기가 더 크면 남아있는 크기만큼 삽입
 	if (realSize < 0)
 	{
-
 		IncreaseBufferSize(eBUFFER_UPSCALE_INT);
 		realSize = sizeof(dwValue);
 
@@ -231,7 +225,6 @@ CMessage& CMessage::operator<<(float fValue)
 	// 남은 공간보다 삽입하고자 하는 크기가 더 크면 남아있는 크기만큼 삽입
 	if (realSize < 0)
 	{
-
 		IncreaseBufferSize(eBUFFER_UPSCALE_INT);
 		realSize = sizeof(fValue);
 
@@ -263,7 +256,6 @@ CMessage& CMessage::operator<<(__int64 iValue)
 	// 남은 공간보다 삽입하고자 하는 크기가 더 크면 남아있는 크기만큼 삽입
 	if (realSize < 0)
 	{
-
 		IncreaseBufferSize(eBUFFER_UPSCALE_INT64);
 		realSize = sizeof(iValue);
 
@@ -295,7 +287,6 @@ CMessage& CMessage::operator<<(double dValue)
 	// 남은 공간보다 삽입하고자 하는 크기가 더 크면 남아있는 크기만큼 삽입
 	if (realSize < 0)
 	{
-
 		IncreaseBufferSize(eBUFFER_UPSCALE_INT64);
 		realSize = sizeof(dValue);
 
@@ -339,7 +330,6 @@ CMessage& CMessage::operator>>(BYTE& byValue)
 	m_iFront += realSize;
 
 	return *this;
-
 }
 
 CMessage& CMessage::operator>>(char& chValue)

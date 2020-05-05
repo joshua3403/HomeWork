@@ -35,7 +35,7 @@
     <ClCompile Include="CMessage.cpp">
       <Filter>내 소스코드</Filter>
     </ClCompile>
-    <ClCompile Include="StreamBufferMain.cpp">
+    <ClCompile Include="FreeListMain.cpp">
       <Filter>내 소스코드</Filter>
     </ClCompile>
   </ItemGroup>
@@ -49,13 +49,22 @@
     <ClInclude Include="TextParser.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="TwoStar.h">
-      <Filter>내 소스코드</Filter>
-    </ClInclude>
     <ClInclude Include="CExceptClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="CMessage.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryPool_mail.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CFreeList.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="OneStar.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseObject.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
