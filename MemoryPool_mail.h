@@ -31,9 +31,16 @@ private:
 	{
 		st_BLOCK_NODE()
 		{
-			stpNextBlock = NULL;
+			stpNextBlock = nullptr;
+			check = 0x1107;
+			wprintf(L"st_BLOCK_NODE Contructor\n");
 		}
 
+		~st_BLOCK_NODE()
+		{
+			wprintf(L"st_BLOCK_NODE Destroyer\n");
+		}
+		DWORD check;
 		st_BLOCK_NODE *stpNextBlock;
 	};
 
@@ -76,7 +83,7 @@ public:
 	// Parameters: 없음.
 	// Return: (int) 메모리 풀 내부 전체 개수
 	//////////////////////////////////////////////////////////////////////////
-	int		GetAllocCount(void) { return m_iAllocCount; }
+	int		GetAllocCount(void) { return m_iMaxCount; }
 
 	//////////////////////////////////////////////////////////////////////////
 	// 현재 사용중인 블럭 개수를 얻는다.
@@ -87,12 +94,14 @@ public:
 	int		GetUseCount(void) { return m_iUseCount; }
 
 
-	// 스택 방식으로 반환된 (미사용) 오브젝트 블럭을 관리.
 
-	st_BLOCK_NODE *_pFreeNode;
 
 private :
-	int m_iAllocCount;
+	// 스택 방식으로 반환된 (미사용) 오브젝트 블럭을 관리.
+
+	st_BLOCK_NODE* _pFreeNode;
+	int m_iFreeCount;
+	int m_iMaxCount;
 	int m_iUseCount;
 	bool  m_bUsingPlacementNew;
 };
@@ -102,47 +111,115 @@ private :
 template<class DATA>
 inline CFreeList<DATA>::CFreeList(int iBlockNum, bool bPlacementNew)
 {
-	m_iAllocCount = iBlockNum;
+	// 새로히 생성할 객체 블럭
+	DATA* newObject = nullptr;
+	st_BLOCK_NODE* newNode = nullptr;
+
+	// 맴버 변수 초기화
+	m_iMaxCount = m_iFreeCount = iBlockNum;
 	m_iUseCount = 0;
 	_pFreeNode = new st_BLOCK_NODE;
-	st_BLOCK_NODE temp;
-	int count = m_iAllocCount;
-	if (m_iAllocCount != 0)
+	m_bUsingPlacementNew = bPlacementNew;
+	wprintf(L"%d\n", sizeof(st_BLOCK_NODE));
+	// 지역변수
+	int count = m_iMaxCount;
+
+	if (m_iMaxCount != 0)
 	{
-		if (bPlacementNew)
+
+		while (count > 0)
 		{
-			while (count > 0)
+			void* newBlock = malloc(sizeof(st_BLOCK_NODE) + sizeof(DATA));
+			newNode = new(newBlock) st_BLOCK_NODE;
+			newNode->stpNextBlock = this->_pFreeNode->stpNextBlock;
+			this->_pFreeNode->stpNextBlock = newNode;
+			if (m_bUsingPlacementNew)
 			{
-				void* newBlock = malloc(sizeof(st_BLOCK_NODE) + sizeof(DATA));
-				newBlock = &temp;
-				
-				//(*(st_BLOCK_NODE*)newBlock)->
-				*(char*)newBlock += sizeof(st_BLOCK_NODE);
-				DATA* newObject = new(newBlock) DATA;
-				_pFreeNode->stpNextBlock = newBlock;
-				count--;
+				newObject = new((char*)newBlock + sizeof(st_BLOCK_NODE)) DATA;
 			}
+			count--;
+			wprintf(L"CFreeList() : MemoryPool Header Pointer : %p, newNode Pointer : %p newObject Pointer : %p\n", this->_pFreeNode->stpNextBlock, newNode, newObject);
 
 		}
 	}
-
 }
 
 template<class DATA>
 inline CFreeList<DATA>::~CFreeList()
 {
+	wprintf(L"~CFreeList()\n");
+	int count = m_iMaxCount - m_iUseCount;
+	void* temp = this->_pFreeNode->stpNextBlock;
+	void* next = nullptr;
+
+	while (count > 0)
+	{
+		wprintf(L"~CFreeList() : MemoryPool Header Pointer : %p\n", temp);
+		next = (*(st_BLOCK_NODE*)temp).stpNextBlock;
+		free(temp);
+		temp = next;
+		count--;
+
+	}
 }
 
 template<class DATA>
 inline DATA* CFreeList<DATA>::Alloc(void)
 {
-	return NULL;
+	// 새로히 생성할 객체 블럭
+	DATA* newObject = nullptr;
+	st_BLOCK_NODE* newNode = nullptr;
+
+	// 현재 사용가능한 블럭 확인
+	int FreeCount = m_iMaxCount - m_iUseCount;
+
+	// 메모리 새로 확보
+	if (FreeCount <= 0)
+	{
+		if (m_bUsingPlacementNew)
+		{
+			void* newBlock = malloc(sizeof(st_BLOCK_NODE) + sizeof(DATA));
+			newNode = new(newBlock) st_BLOCK_NODE;
+			newNode->stpNextBlock = this->_pFreeNode->stpNextBlock;
+			this->_pFreeNode->stpNextBlock = newNode;
+			newObject = new((char*)newBlock + sizeof(st_BLOCK_NODE)) DATA;
+		}
+		else
+		{
+			void* newBlock = malloc(sizeof(st_BLOCK_NODE) + sizeof(DATA));
+			newNode = new(newBlock) st_BLOCK_NODE;
+			newNode->stpNextBlock = this->_pFreeNode->stpNextBlock;
+			this->_pFreeNode->stpNextBlock = newNode;
+		}
+		m_iMaxCount++;
+	}
+
+	void* blockPointer = this->_pFreeNode->stpNextBlock;
+	// 블럭 포인터 반환
+	if (!m_bUsingPlacementNew)
+	{
+		newObject = new((char*)blockPointer + sizeof(st_BLOCK_NODE)) DATA;
+	}
+	this->_pFreeNode->stpNextBlock = (*(st_BLOCK_NODE*)blockPointer).stpNextBlock;
+	wprintf(L"Alloc() : MemoryPool Header Pointer : %p\n", this->_pFreeNode->stpNextBlock);
+	m_iUseCount++;
+	return (DATA*)((char*)blockPointer + sizeof(st_BLOCK_NODE));
 }
 
 template<class DATA>
 inline bool CFreeList<DATA>::Free(DATA* pData)
 {
-	return false;
+	void* returnedBlock = (char*)pData - sizeof(st_BLOCK_NODE);
+	if ((*(st_BLOCK_NODE*)returnedBlock).check != 0x1107)
+	{
+		return false;
+	}
+
+	(*(st_BLOCK_NODE*)returnedBlock).stpNextBlock = this->_pFreeNode->stpNextBlock;
+	this->_pFreeNode->stpNextBlock = (st_BLOCK_NODE*)returnedBlock;
+	m_iUseCount--;
+
+	return true;
 }
 
 
