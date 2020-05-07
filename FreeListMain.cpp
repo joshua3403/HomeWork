@@ -22,7 +22,7 @@ public:
 
 int main()
 {
-	CFreeList<testClass> MemoryPool(1, false);
+	CFreeList<testClass> MemoryPool(1, true);
 
 	testClass* test1 = MemoryPool.Alloc();
 	wprintf(L"test1 ");

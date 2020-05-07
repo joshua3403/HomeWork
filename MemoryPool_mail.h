@@ -196,7 +196,7 @@ inline DATA* CFreeList<DATA>::Alloc(void)
 
 	void* blockPointer = this->_pFreeNode->stpNextBlock;
 	// 블럭 포인터 반환
-	if (!m_bUsingPlacementNew)
+	if (m_bUsingPlacementNew)
 	{
 		newObject = new((char*)blockPointer + sizeof(st_BLOCK_NODE)) DATA;
 	}
@@ -213,6 +213,10 @@ inline bool CFreeList<DATA>::Free(DATA* pData)
 	if ((*(st_BLOCK_NODE*)returnedBlock).check != 0x1107)
 	{
 		return false;
+	}
+	if (m_bUsingPlacementNew)
+	{
+		pData->~DATA();
 	}
 
 	(*(st_BLOCK_NODE*)returnedBlock).stpNextBlock = this->_pFreeNode->stpNextBlock;
