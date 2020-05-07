@@ -146,14 +146,14 @@
     <Image Include="..\..\..\Downloads\sample2.bmp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="FreeListMain.cpp" />
+    <ClCompile Include="CBinarySearchTree.h" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TestMain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CMessage.h" />
-    <ClInclude Include="MemoryPool_mail.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
