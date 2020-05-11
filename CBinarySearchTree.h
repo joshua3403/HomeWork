@@ -20,6 +20,10 @@ public:
 		m_pLeft = left;
 		m_pRight = right;
 	}
+	~Node()
+	{
+		wprintf(L"Delete Node %d\n", m_tData);
+	}
 };
 
 template<typename T>
@@ -27,41 +31,56 @@ class BinarySearchTree
 {
 private:
 	Node<T>* m_pRoot;
+	int m_iUsingCount;
 public:
 	BinarySearchTree(T data)
 	{
 		m_pRoot = new Node<T>(data);
+		m_iUsingCount = 1;
 	}
 
 	~BinarySearchTree()
 	{
-		DestroyTree(m_pRoot);
+		if (m_iUsingCount != 0)
+			DestroyTree(m_pRoot);
 	}
 
-	void InsertNode(Node<T>* newNode)
+	void InsertNode(Node<T>* Root,Node<T>* newNode)
 	{
 		// 중복을 먼저 확인
-		if (SearchNode(m_pRoot, newNode->m_tData) == nullptr)
+		if (SearchNode(Root, newNode->m_tData) == nullptr)
 		{
-			Node<T>* Parent = nullptr;
-			Node<T>* Current = nullptr;
-			while (Current != nullptr)
+			if (Root->m_tData < newNode->m_tData)
 			{
-				Parent = Current;
-				if (Parent->m_tData > newNode->m_tData)
+				if (Root->m_pRight == nullptr)
 				{
-					Current = Current->m_pLeft;
+					Root->m_pRight = newNode;
+					wprintf(L"InsertNode : %d, Right\n", newNode->m_tData);
+					m_iUsingCount++;
 				}
 				else
-					Current = Current->m_pRight;
-			}
-			if (newNode->m_tData < m_pRoot->m_tData)
-				Parent->m_pLeft = newNode;
-			else
-				Parent->m_pRight = newNode;
+					InsertNode(Root->m_pRight, newNode);
 
-			wprintf(L"%d was inserted", newNode->m_tData);
+			}
+			else if (Root->m_tData > newNode->m_tData)
+			{
+				if (Root->m_pLeft == nullptr)
+				{
+					Root->m_pLeft = newNode;
+					wprintf(L"InsertNode : %d, Left\n", newNode->m_tData);
+					m_iUsingCount++;
+				}
+				else
+					InsertNode(Root->m_pLeft, newNode);
+
+			}
+
 		}
+	}
+	
+	int GetUsingSize(void)
+	{
+		return m_iUsingCount;
 	}
 
 	Node<T>* SearchNode(Node<T>* currentNode, T data)
@@ -71,13 +90,10 @@ public:
 
 		if (currentNode->m_tData == data)
 			return currentNode;
+		else if (currentNode->m_tData > data)
+			return SearchNode(currentNode->m_pLeft, data);
 		else
-		{
-			if (currentNode->m_tData > data)
-				SearchNode(currentNode->m_pLeft, data);
-			else
-				SearchNode(currentNode->m_pRight, data);
-		}
+			return SearchNode(currentNode->m_pRight, data);
 	}
 
 	Node<T>* GetRoot()
@@ -92,24 +108,27 @@ public:
 
 		InorderPrintTree(Root->m_pLeft);
 
-		wprintf(L"%d", Root->m_tData);
+		wprintf(L"%d\t", Root->m_tData);
 
 		InorderPrintTree(Root->m_pRight);
 	}
 
 	void DestroyTree(Node<T>* Tree)
 	{
-		if (Tree->m_pLeft != nullptr)
-			DestroyTree(Tree->m_pLeft);
-
 		if (Tree->m_pRight != nullptr)
 			DestroyTree(Tree->m_pRight);
 
+		if (Tree->m_pLeft != nullptr)
+			DestroyTree(Tree->m_pLeft);
+
 		Tree->m_pLeft = nullptr;
 		Tree->m_pRight = nullptr;
+		m_iUsingCount--;
+		delete Tree;
+	}
 
-		wprintf(L"%d was deleted", Tree->m_tData);
-
-		free( Tree);
+	void DestroyNode(Node<T>* Node)
+	{
+		delete Node;
 	}
 };
