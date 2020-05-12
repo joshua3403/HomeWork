@@ -19,6 +19,12 @@ int main()
 
 	testBST.InorderPrintTree(testBST.GetRoot());
 	wprintf(L"\n");
+	testBST.DestroyNode( testBST.DeleteNode(Root, nullptr, 11));
+	wprintf(L"Using Size : %d\n", testBST.GetUsingSize());
+
+
+	testBST.InorderPrintTree(testBST.GetRoot());
+	wprintf(L"\n");
 	testBST.DestroyTree(testBST.GetRoot());
 	wprintf(L"Using Size : %d\n", testBST.GetUsingSize());
 

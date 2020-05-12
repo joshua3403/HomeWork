@@ -129,6 +129,74 @@ public:
 
 	void DestroyNode(Node<T>* Node)
 	{
+		m_iUsingCount--;
 		delete Node;
+	}
+
+	Node<T>* SearchMinNode(Node<T>* Tree)
+	{
+		Node<T>* SearchNode = Tree;
+		while (SearchNode != nullptr)
+		{
+			SearchNode = Tree->m_pLeft;
+		}
+		return SearchNode;
+	}
+
+	Node<T>* DeleteNode(Node<T>* Tree, Node<T>* Parent, int data)
+	{
+		if (Tree == nullptr)
+			return nullptr;
+
+		Node<T>* RemoveNode = nullptr;
+
+		if (Tree->m_tData < data)
+		{
+			DeleteNode(Tree->m_pRight, Tree, data);
+		}
+		else if (Tree->m_tData > data)
+		{
+			DeleteNode(Tree->m_pLeft, Tree, data);
+		}
+		else
+		{
+			RemoveNode = Tree;
+
+			if (Tree->m_pLeft == nullptr && Tree->m_pRight == nullptr)
+			{
+				if (Parent->m_pLeft == Tree)
+					Parent->m_pLeft = nullptr;
+				else
+					Parent->m_pRight = nullptr;
+			}
+			else
+			{
+				if (Tree->m_pLeft != nullptr && Tree->m_pRight != nullptr)
+				{
+					Node<T>* minNode = SearchMinNode(Tree->m_pRight);
+					minNode = DeleteNode(Tree, nullptr, minNode->m_tData);
+					Tree->m_tData = minNode->m_tData;
+				}
+				else
+				{
+					Node<T>* temp = nullptr;
+					if (Tree->m_pLeft != nullptr)
+					{
+						temp = Tree->m_pLeft;
+					}
+					else
+					{
+						temp = Tree->m_pRight;
+					}
+
+					if (Parent->m_pLeft == Tree)
+						Parent->m_pLeft = temp;
+					else
+						Parent->m_pRight = temp;
+				}
+			}
+		}
+
+		return RemoveNode;
 	}
 };
