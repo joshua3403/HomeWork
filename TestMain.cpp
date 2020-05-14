@@ -1,33 +1,26 @@
 #include "stdafx.h"
-#include "CBinarySearchTree.h"
+#include "CRedBlackTree.h"
 
 int main()
 {
-	BinarySearchTree<int> testBST(666);
-	Node<int>* Root = testBST.GetRoot();
-		   
-	testBST.InsertNode(Root, new Node<int>(1346));
-	testBST.InsertNode(Root, new Node<int>(22));
-	testBST.InsertNode(Root, new Node<int>(346));
-	testBST.InsertNode(Root, new Node<int>(11));
-	testBST.InsertNode(Root, new Node<int>(156168));
-	testBST.InsertNode(Root, new Node<int>(888));
-	testBST.InsertNode(Root, new Node<int>(15));
-	testBST.InsertNode(Root, new Node<int>(96));
+	CRedBlackTree<int> test;
 
-	wprintf(L"Using Size : %d\n", testBST.GetUsingSize());
+	test.InsertNode(123);
 
-	testBST.InorderPrintTree(testBST.GetRoot());
-	wprintf(L"\n");
-	testBST.DestroyNode( testBST.DeleteNode(Root, nullptr, 11));
-	wprintf(L"Using Size : %d\n", testBST.GetUsingSize());
+	test.InsertNode(11);
+	test.InsertNode(23);
+	test.InsertNode(457);
+	test.InsertNode(334);
+
+	test.InsertNode(66);
+	test.InsertNode(55);
 
 
-	testBST.InorderPrintTree(testBST.GetRoot());
-	wprintf(L"\n");
-	testBST.DestroyTree(testBST.GetRoot());
-	wprintf(L"Using Size : %d\n", testBST.GetUsingSize());
 
+	printf("------------------중위 순회------------------\n");
+	test.InorderTraversal(test.GetRoot());
+	printf("root = %d\n", test.GetRoot()->m_tData);
+	printf("------------------중위 순회 끝------------------\n");
 
 	return 0;
 }
