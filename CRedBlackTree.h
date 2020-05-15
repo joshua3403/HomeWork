@@ -37,6 +37,11 @@ public:
 	{
 		printf("%d Node deleted\n", m_tData);
 	}
+
+	void SetData(T data)
+	{
+		m_tData = data;
+	}
 };
 
 template<typename T>
@@ -79,7 +84,7 @@ public:
 		}
 		else
 		{
-			if (SearchNode(m_pRoot,data) == _NIL)
+			if (SearchNode(m_pRoot,data) == nullptr)
 			{
 				Node<T>* temp = GetRoot();
 				Node<T>* newNode = new Node<T>(data);
@@ -229,7 +234,7 @@ public:
 	Node<T>* SearchNode(Node<T>* currentNode, T data)
 	{
 		if (currentNode == _NIL)
-			return _NIL;
+			return nullptr;
 
 		if (currentNode->m_tData == data)
 			return currentNode;
@@ -265,6 +270,93 @@ public:
 		m_iNodeCount--;
 		delete Tree;
 	}
+
+
+	void DestroyNode(Node<T>* Node)
+	{
+		m_iNodeCount--;
+		delete Node;
+	}
+
+	Node<T>* SearchMinNode(Node<T>* Tree)
+	{
+		Node<T>* SearchNode = Tree;
+		while (SearchNode->m_pLeft != _NIL)
+		{
+			SearchNode = SearchNode->m_pLeft;
+		}
+		return SearchNode;
+	}
+
+	Node<T>* DeleteNode(Node<T>* Tree, Node<T>* Parent, int data)
+	{
+		if (Tree == _NIL)
+			return nullptr;
+
+		if (SearchNode(Tree, data) == nullptr)
+			return nullptr;
+
+		Node<T>* RemoveNode = nullptr;
+
+		if (Tree->m_tData < data)
+		{
+			DeleteNode(Tree->m_pRight, Tree, data);
+		}
+		else if (Tree->m_tData > data)
+		{
+			DeleteNode(Tree->m_pLeft, Tree, data);
+		}
+		else
+		{
+			RemoveNode = Tree;
+
+			if (Tree->m_pLeft == _NIL && Tree->m_pRight == _NIL)
+			{
+				if (Parent->m_pLeft == Tree)
+				{
+					Parent->m_pLeft = _NIL;
+
+				}
+				else
+				{
+					Parent->m_pRight = _NIL;
+
+				}
+			}
+			else
+			{
+				if (Tree->m_pLeft != _NIL && Tree->m_pRight != _NIL)
+				{
+					T temp = Tree->m_tData;
+					Node<T>* minNode = SearchMinNode(Tree->m_pRight);
+					Tree->m_tData = minNode->m_tData;
+					minNode->SetData(temp);
+					//minNode = DeleteNode(Tree, _NIL, minNode->m_tData);
+				}
+				else
+				{
+					Node<T>* temp = nullptr;
+					if (Tree->m_pLeft != _NIL)
+					{
+						temp = Tree->m_pLeft;
+					}
+					else
+					{
+						temp = Tree->m_pRight;
+					}
+
+					if (Parent->m_pLeft == Tree)
+						Parent->m_pLeft = temp;
+					else
+						Parent->m_pRight = temp;
+				}
+			}
+		}
+
+		return RemoveNode;
+	}
+
+
 };
 
 template<typename T>

@@ -13,3 +13,4 @@
 #include <string>
 #include <strsafe.h>
 #include <new.h>
+#include <atlstr.h>

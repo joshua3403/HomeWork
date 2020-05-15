@@ -148,6 +148,9 @@ public:
 		if (Tree == nullptr)
 			return nullptr;
 
+		if(SearchNode(Tree, data) == nullptr)
+			return nullptr;
+
 		Node<T>* RemoveNode = nullptr;
 
 		if (Tree->m_tData < data)
