@@ -146,7 +146,8 @@
     <Image Include="..\..\..\Downloads\sample2.bmp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CRedBlackTree.h" />
+    <ClCompile Include="CRedBlackTree.cpp" />
+    <ClCompile Include="Recursive call(Sol).cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
@@ -154,7 +155,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CBinarySearchTree.h" />
-    <ClInclude Include="CRBT.h" />
+    <ClInclude Include="CRedBlackTree.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

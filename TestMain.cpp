@@ -1,7 +1,11 @@
 #include "stdafx.h"
-#include "CRBT.h"
+#include "CRedBlackTree.h"
 
-RBTree test;
+RBTNode* test;
+RBTNode* node;
+RBTNode* Nil;
+
+
 HWND g_hWnd;
 int g_circleSize = 60;
 int g_iWindowWidth = GetSystemMetrics(SM_CXSCREEN);
@@ -13,15 +17,19 @@ bool isDelete = false;
 char str[256];
 int i = 1;
 
+
 int len = 0;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
-void PrintTree(NodePtr, int x, int y);
+void PrintTree(RBTNode*,int x,int y, int depth);
 
-void PrintRoot(NodePtr, int x, int y);
+void PrintRoot(RBTNode*, int x, int y);
 
 int main()
 {
+	Nil = RBT_CreateNode(0);
+	Nil->Color = RBTNode::BLACK;
+
 	srand((unsigned int)time(NULL));
 	WNDCLASS wndclass;
 	wndclass.style = CS_HREDRAW | CS_VREDRAW;
@@ -33,14 +41,14 @@ int main()
 	wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wndclass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
 	wndclass.lpszMenuName = NULL;
-	wndclass.lpszClassName = L"RedBlackTree";
+	wndclass.lpszClassName = L"RedRBTNode::BLACKTree";
 
 	if (!RegisterClass(&wndclass))
 		return 1;
 
 
 	// 윈도우 생성
-	g_hWnd = CreateWindow(L"RedBlackTree", L"RedBlackTree", WS_OVERLAPPEDWINDOW, 0, 0, g_iWindowWidth, g_iWindowHeight, NULL, NULL, NULL, NULL);
+	g_hWnd = CreateWindow(L"RedRBTNode::BLACKTree", L"RedRBTNode::BLACKTree", WS_OVERLAPPEDWINDOW, 0, 0, g_iWindowWidth, g_iWindowHeight, NULL, NULL, NULL, NULL);
 
 	if (g_hWnd == NULL)
 		return 1;
@@ -67,14 +75,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	HBRUSH oldBr;
 	HFONT oldFont;
 	HDC hdc;
-
+	int temp;
 	switch (msg)
 	{
 	case WM_KEYDOWN:
 		switch (wParam)
 		{
 		case VK_CONTROL:
-			test.insert(rand() % 100);
+			temp = rand() % 100 + 1;
+			if (test != nullptr)
+			{
+				if (RBT_SearchNode(test, temp) == NULL)
+					RBT_InsertNode(&test, RBT_CreateNode(temp));
+			}else
+				RBT_InsertNode(&test, RBT_CreateNode(temp));
+
 			break;
 		case VK_SPACE:
 			isDelete = true;
@@ -85,9 +100,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				isDelete = false;
 				int data = atoi(str);
-				test.deleteNode(data);
+				node = RBT_RemoveNode(&test, data);
+				if (node != NULL)
+					RBT_DestroyNode(node);
 				InvalidateRect(hWnd, NULL, TRUE);
-
 				str[0] = '\0';
 			}
 			break;
@@ -110,13 +126,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		SetTextColor(hdc, RGB(0, 0, 0));
 		if (isDelete)
 		{
-			TextOut(hdc, 100, 1200, L"Input : ", 10);
-			TextOut(hdc, 150, 1200, (LPCWSTR)str, len);
+			oldFont = (HFONT)SelectObject(hdc, g_hFontTitle);
+			TextOut(hdc, 100, 800, L"Input : ", 10);
+			TextOut(hdc, 300, 800, (LPCWSTR)str, len);
+			SelectObject(hdc, oldFont);
 		}
-		PrintRoot(test.getRoot(), g_iWindowWidth / 2,50);
-		PrintTree(test.getRoot()->left, g_iWindowWidth / 2 -500, 120);
-		PrintTree(test.getRoot()->right, g_iWindowWidth / 2 + 500, 120);
-
+		PrintTree(test,g_iWindowWidth / 2 , 0 , 0);
+		
 		EndPaint(hWnd, &ps);
 		break;
 
@@ -130,7 +146,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
-void PrintRoot(NodePtr Node, int x, int y)
+void PrintTree(RBTNode* Node,int x, int y, int depth)
 {
 	HDC hdc = GetDC(g_hWnd);
 	HBRUSH oldBr;
@@ -138,14 +154,43 @@ void PrintRoot(NodePtr Node, int x, int y)
 	SetBkMode(hdc, TRANSPARENT);
 	CString str;
 
-	if (Node == RBTree::TNULL)
+	int tempx = x;
+	int tempy = y;
+
+	if (Node == nullptr || Node == Nil)
 		return;
 
-	if (Node != RBTree::TNULL)
+	if (Node != nullptr && Node != Nil)
 	{
-		str.Format(_T("%d"), Node->data);
+
+		str.Format(_T("%d"), Node->Data);
 		// 검정색이라면
-		if (Node->color == 0)
+		if (depth == 0)
+			x = g_iWindowWidth / 2;
+		else
+		{
+			// 내가 부모 노드의 왼 자식이라면
+			if (Node == Node->Parent->Left)
+			{
+				x -= g_iWindowWidth / pow(2, depth + 1);
+			}
+			else
+			{
+				x += g_iWindowWidth / pow(2, depth + 1);
+			}
+		}
+		y += 100;
+		if (Node->Left != Nil && Node->Left != nullptr)
+		{
+			MoveToEx(hdc, tempx + 20, tempy, NULL);
+			LineTo(hdc, x + 20, y);
+		}
+		if (Node->Right != Nil && Node->Right != nullptr)
+		{
+			MoveToEx(hdc, tempx + 20, tempy, NULL);
+			LineTo(hdc, x + 20, y);
+		}
+		if (Node->Color == RBTNode::BLACK)
 		{
 			oldBr = (HBRUSH)SelectObject(hdc, g_hBlackBrush);
 			Ellipse(hdc, x, y, x + g_circleSize, y + g_circleSize);
@@ -170,51 +215,10 @@ void PrintRoot(NodePtr Node, int x, int y)
 		}
 	}
 
-	ReleaseDC(g_hWnd, hdc);
-}
-
-void PrintTree(NodePtr Node, int x, int y)
-{
-	HDC hdc = GetDC(g_hWnd);
-	HBRUSH oldBr;
-	HFONT oldFont;
-	SetBkMode(hdc, TRANSPARENT);
-	CString str;
-
-	if (Node == RBTree::TNULL)
-		return;
-
-	if (Node != RBTree::TNULL && Node != nullptr)
-	{
-		str.Format(_T("%d"), Node->data);
-		// 검정색이라면
-		if (Node->color == 0)
-		{
-			oldBr = (HBRUSH)SelectObject(hdc, g_hBlackBrush);
-			Ellipse(hdc, x, y, x + g_circleSize, y + g_circleSize);
-			SelectObject(hdc, oldBr);
-
-			SetTextColor(hdc, RGB(255, 255, 255));
-			oldFont = (HFONT)SelectObject(hdc, g_hFontTitle);
-			TextOut(hdc, x + 12, y + 10, str, str.GetLength());
-			SelectObject(hdc, oldFont);
-		}
-		else
-		{
-			oldBr = (HBRUSH)SelectObject(hdc, g_hRedBrush);
-			Ellipse(hdc, x, y, x + g_circleSize, y + g_circleSize);
-			SelectObject(hdc, oldBr);
-
-			SetTextColor(hdc, RGB(0, 0, 0));
-			oldFont = (HFONT)SelectObject(hdc, g_hFontTitle);
-			TextOut(hdc, x + 12, y + 10, str, str.GetLength());
-			SelectObject(hdc, oldFont);
-
-		}
-
-		PrintTree(Node->left, x - 150, y + 70);
-		PrintTree(Node->right, x + + 150, y + 70);
-	}
+	if (Node->Left != nullptr && Node->Left != Nil)
+		PrintTree(Node->Left, x,y,depth + 1);
+	if (Node->Right != nullptr && Node->Right != Nil)
+		PrintTree(Node->Right, x,y,depth + 1);
 
 	ReleaseDC(g_hWnd, hdc);
 

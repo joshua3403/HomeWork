@@ -88,9 +88,9 @@ private:
 		return searchTreeHelper(node->right, key);
 	}
 
-	// fix the rb tree modified by the delete operation
 	void fixDelete(NodePtr x)
 	{
+		// »ïÃÌ ³ëµå
 		NodePtr s;
 		while (x != root && x->color == 0)
 		{
@@ -544,10 +544,13 @@ public:
 		else if (node->data < y->data)
 		{
 			y->left = node;
+			printf("%d inserted\n", node->data);
 		}
 		else
 		{
 			y->right = node;
+			printf("%d inserted\n", node->data);
+
 		}
 
 		// if new node is a root node, simply return
