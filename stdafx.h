@@ -14,3 +14,6 @@
 #include <strsafe.h>
 #include <new.h>
 #include <atlstr.h>
+#include <list>
+#include <queue>
+#include <vector>

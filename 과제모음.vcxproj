@@ -147,14 +147,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CRedBlackTree.cpp" />
-    <ClCompile Include="Recursive call(Sol).cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="TestMain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CBinarySearchTree.h" />
     <ClInclude Include="CRedBlackTree.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
