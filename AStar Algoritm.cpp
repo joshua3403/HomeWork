@@ -13,7 +13,10 @@ typedef struct tag_ST_POSITIONNODE
 		y = 0;
 		isStart = isEnd = isBlock = false;
 	}
+	~tag_ST_POSITIONNODE()
+	{
 
+	}
 } POSITIONNODE;
 
 typedef struct tag_ST_PointNode
@@ -22,11 +25,11 @@ typedef struct tag_ST_PointNode
 	int Y;
 	tag_ST_PointNode* Parent;
 	// G + H
-	int F;
+	double F;
 	// 출발점으로 부터의 이동 거리
-	int G;
+	double G;
 	// 현재 포인트에서부터 목적지까지의 거리 (맨하탄 방식)
-	int H;
+	double H;
 	tag_ST_PointNode(int x, int y)
 	{
 		X = x;
@@ -51,28 +54,49 @@ int g_iWindowHeight = GetSystemMetrics(SM_CYSCREEN);
 int g_iCountX = 100;
 int g_iCountY = 100;
 
+bool g_bIsStartDeleted = false;
 
-POSITIONNODE* g_NodeStart = nullptr;
-POSITIONNODE* g_NodeEnd = nullptr;
+bool SortingList(const POINTNODE* lhs, const POINTNODE* rhs)
+{
+	return lhs->F < rhs->F;
+}
+
+std::list<POINTNODE*> OpenNode;	
+std::map<const std::pair<int, int>, POINTNODE*> CloseNode;
+
+bool g_bEndClicked;
+bool g_bStartClicked;
+int g_iEndX = 0, g_iEndY = 0, g_iStartX = 0, g_iStartY = 0;
 POSITIONNODE* g_NodeBlock = nullptr;
 POSITIONNODE g_NodeArray[100][100];
-POINTNODE* g_PointStart = nullptr;
-POINTNODE* g_PointEnd = nullptr;
+POINTNODE* g_startNode = nullptr;
+
+HBRUSH MyBrushYellow = CreateSolidBrush(RGB(255, 255, 0));
+HPEN MyPenYellow = CreatePen(PS_SOLID, 1, RGB(255, 255, 255));
+HBRUSH MyBrushGreen = CreateSolidBrush(RGB(0, 255, 0));
+HPEN MyPenGreen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
+HBRUSH MyBrushRed = CreateSolidBrush(RGB(255, 0, 0));
+HPEN MyPenRed = CreatePen(PS_SOLID, 3, RGB(255, 0, 0));
+HBRUSH MyBrushGray = CreateSolidBrush(RGB(125, 125, 125));
+HPEN MyPenGray = CreatePen(PS_SOLID, 1, RGB(125, 125, 125));
+HBRUSH MyBrushBlue = CreateSolidBrush(RGB(0, 0, 255));
+HPEN MyPenBlue = CreatePen(PS_SOLID, 1, RGB(0, 0, 255));
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 void InitialArray();
 void PrintGrid(HDC hdc);
-void PrintStartAndEnd(HDC hdc);
-
-struct cmp
-{
-	bool operator()(POINTNODE t, POINTNODE u)
-	{
-		return t.F > u.F;
-	}
-};
-
-std::priority_queue<POINTNODE, std::vector<POINTNODE>, cmp> g_OpenNode;
+void PrintStart(HDC hdc);
+void PrintEnd(HDC hdc);
+void PrintBlock(HDC hdc);
+void PrintOpen(HDC hdc);
+void CloseListAndMap();
+bool IsAvailableToMove(int x, int y);
+POINTNODE* IsInOpen(int x, int y);
+POINTNODE* IsInClose(int x, int y);
+POINTNODE* AStarAlgorithm(int start_x, int start_y, int end_x, int end_y, HDC hdc);
+bool MakeChildNode(POINTNODE* node, int start_x, int start_y, HDC hdc);
+void ExtendNode(POINTNODE* node, int current_x, int current_y, int dest_x, int dest_y, bool isDiagonal, HDC hdc);
+void PrintRoute(HDC hdc, POINTNODE* best);
 
 int main()
 {
@@ -122,7 +146,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	int positionY = 0, positionX = 0;
 	static int prevPositionY = 0, prevPositionX = 0;
 	static BOOL bDrag = FALSE;
-
+	POINTNODE* BestRoute = nullptr;
 	switch (msg)
 	{
 	case WM_LBUTTONDOWN:
@@ -153,21 +177,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_PAINT:
 		hdc = BeginPaint(hWnd, &ps);
 		PrintGrid(hdc);
-		PrintStartAndEnd(hdc);
+		PrintStart(hdc);
+		PrintBlock(hdc);
 		// A Star Algoritm start
-
-
-
-		if (g_PointStart != nullptr && g_PointEnd != nullptr)
+		if (g_bEndClicked && g_bStartClicked)
 		{
-			printf("A Star start\n");
-
-			g_OpenNode.push(*g_PointStart);
-
-			printf("%d ", g_OpenNode.top().F);
-
-
+			g_startNode = new POINTNODE(g_iStartX, g_iStartY);
+			g_startNode->H = abs(g_iStartX - g_iEndX) + abs(g_iStartY - g_iEndY);
+			g_startNode->F = g_startNode->H + g_startNode->G;
+			OpenNode.push_back(g_startNode);
+			BestRoute = AStarAlgorithm(g_iStartX, g_iStartY, g_iEndX, g_iEndY, hdc);
+			PrintRoute(hdc, BestRoute);
 		}
+		PrintOpen(hdc);
+
+		PrintEnd(hdc);
+
 		EndPaint(hWnd, &ps);
 		break;
 
@@ -176,38 +201,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		positionX = LOWORD(lParam) / 10;
 		if (positionY < 100 && positionX < 100)
 		{
-			if (g_NodeEnd != nullptr)
+			// 이미 클릭된 곳이 존재한 상태라면
+			if (g_bEndClicked)
 			{
-				if ((*g_NodeEnd).x == positionX && (*g_NodeEnd).y == positionY)
+				if (g_iEndX == positionX && g_iEndY == positionY)
 				{
-					(*g_NodeEnd).isEnd = false;
-					g_NodeEnd = nullptr;
-					if (g_PointEnd != nullptr)
-					{
-						delete g_PointEnd;
-						g_PointEnd = nullptr;
-					}
-					//printf("prev : %d %d %d\n", (*g_NodeStart).x, (*g_NodeStart).y, (*g_NodeStart).isStart);
-					InvalidateRect(hWnd, NULL, TRUE);
-					break;
+					g_NodeArray[positionY][positionX].isEnd = false;
+					g_bEndClicked = false;
 				}
 				else
 				{
-					(*g_NodeEnd).isEnd = false;
-					g_NodeEnd = nullptr;
-					if (g_PointEnd != nullptr)
-					{
-						delete g_PointEnd;
-						g_PointEnd = nullptr;
-					}
-					//printf("prev : %d %d %d\n", (*g_NodeStart).x, (*g_NodeStart).y, (*g_NodeStart).isStart);
+					g_NodeArray[g_iEndY][g_iEndX].isEnd = false;
+					g_NodeArray[positionY][positionX].isEnd = true;
+					g_bEndClicked = true;
+					g_iEndY = positionY;
+					g_iEndX = positionX;
 				}
 			}
-			g_NodeEnd = &g_NodeArray[positionY][positionX];
-			g_PointEnd = new POINTNODE(positionX, positionY);
-			(*g_NodeEnd).isEnd = !(*g_NodeEnd).isEnd;
-			//printf("next : %d %d %d\n", (*g_NodeStart).x, (*g_NodeStart).y, (*g_NodeStart).isStart);
-
+			else
+			{
+				g_NodeArray[positionY][positionX].isEnd = true;
+				g_bEndClicked = true;
+				g_iEndY = positionY;
+				g_iEndX = positionX;
+			}
 		}
 		InvalidateRect(hWnd, NULL, TRUE);
 		break;
@@ -216,46 +233,49 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		positionX = LOWORD(lParam) / 10;
 		if (positionY < 100 && positionX < 100)
 		{
-			if (g_NodeStart != nullptr)
+			// 이미 클릭된 곳이 존재한 상태라면
+			if (g_bStartClicked)
 			{
-				if ((*g_NodeStart).x == positionX && (*g_NodeStart).y == positionY)
+				if (g_iStartX == positionX && g_iStartY == positionY)
 				{
-					(*g_NodeStart).isStart = false;
-					(*g_NodeStart).isBlock = false;
-					g_NodeStart = nullptr;
-					if (g_PointStart != nullptr)
-					{
-						delete g_PointStart;
-						g_PointStart = nullptr;
-					}
-					//printf("prev : %d %d %d\n", (*g_NodeStart).x, (*g_NodeStart).y, (*g_NodeStart).isStart);
-					InvalidateRect(hWnd, NULL, TRUE);
-					break;
+					g_NodeArray[positionY][positionX].isEnd = false;
+					g_NodeArray[positionY][positionX].isBlock = false;
+					g_bStartClicked = false;
 				}
 				else
 				{
-					(*g_NodeStart).isBlock = false;
-					(*g_NodeStart).isStart = false;
-					g_NodeStart = nullptr;
-					if (g_PointStart != nullptr)
-					{
-						delete g_PointStart;
-						g_PointStart = nullptr;
-					}
-					//printf("prev : %d %d %d\n", (*g_NodeStart).x, (*g_NodeStart).y, (*g_NodeStart).isStart);
+					g_NodeArray[g_iStartY][g_iStartX].isEnd = false;
+					g_NodeArray[positionY][positionX].isEnd = true;
+					g_NodeArray[positionY][positionX].isBlock = false;
+					g_iStartX = positionX;
+					g_iStartY = positionY;
+					g_bStartClicked = true;
 				}
-
 			}
-			g_NodeStart = &g_NodeArray[positionY][positionX];
-			g_PointStart = new POINTNODE(positionX, positionY);
-			(*g_NodeStart).isStart = !(*g_NodeStart).isStart;
-			(*g_NodeStart).isBlock = false;
-			//printf("next : %d %d %d\n", (*g_NodeStart).x, (*g_NodeStart).y, (*g_NodeStart).isStart);
+			else
+			{
+				g_NodeArray[positionY][positionX].isEnd = true;
+				g_NodeArray[positionY][positionX].isBlock = false;
+				g_bStartClicked = true;
+				g_iStartX = positionX;
+				g_iStartY = positionY;
+			}
 		}
 		InvalidateRect(hWnd, NULL, TRUE);
 		break;
 
 	case WM_DESTROY:
+		CloseListAndMap();
+
+		DeleteObject(MyBrushYellow);
+		DeleteObject(MyPenYellow);
+		DeleteObject(MyPenGreen);
+		DeleteObject(MyBrushGreen);
+		DeleteObject(MyBrushGray);
+		DeleteObject(MyPenGray);
+		DeleteObject(MyBrushRed);
+		DeleteObject(MyPenRed);
+
 		PostQuitMessage(0);
 		break;
 	}
@@ -294,65 +314,50 @@ void PrintGrid(HDC hdc)
 	}
 }
 
-void DeleteArray()
+void PrintStart(HDC hdc)
 {
-	for (int i = 0; i < 100; i++)
-	{
-		free(g_NodeArray[i]);
-	}
-	free(g_NodeArray);
-}
-
-void PrintStartAndEnd(HDC hdc)
-{
-	HBRUSH MyBrushGreen, MyBrushRed, MyBrushGray, OldBrush;
-	HPEN MyPenGreen,MyPenRed, MyPenGray, OldPen;
-
-	MyBrushGreen = CreateSolidBrush(RGB(0, 255, 0));
-	MyPenGreen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
-
-	MyBrushRed = CreateSolidBrush(RGB(255, 0, 0));
-	MyPenRed = CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
-
-	MyBrushGray = CreateSolidBrush(RGB(125, 125, 125));
-	MyPenGray = CreatePen(PS_SOLID, 1, RGB(125, 125, 125));
+	HBRUSH OldBrush;
+	HPEN OldPen;
 
 	OldPen = (HPEN)SelectObject(hdc, MyPenGreen);
 	OldBrush = (HBRUSH)SelectObject(hdc, MyBrushGreen);
-	if (g_NodeStart != nullptr)
+	
+	if (g_bStartClicked)
 	{
-		if ((*g_NodeStart).isStart)
-		{
-			Rectangle(hdc, (*g_NodeStart).x*10+1, (*g_NodeStart).y*10+1, (*g_NodeStart).x*10 + 10, (*g_NodeStart).y*10 + 10);
-		}
+		Rectangle(hdc, g_iStartX * 10 + 1, g_iStartY * 10 + 1, g_iStartX * 10 + 10, g_iStartY * 10 + 10);
 	}
 
 	SelectObject(hdc, OldPen);
 	SelectObject(hdc, OldBrush);
+
+
+}
+
+void PrintEnd(HDC hdc)
+{
+	HBRUSH OldBrush;
+	HPEN OldPen;
+
 
 	OldPen = (HPEN)SelectObject(hdc, MyPenRed);
 	OldBrush = (HBRUSH)SelectObject(hdc, MyBrushRed);
 
-	if (g_NodeEnd != nullptr)
+	if (g_bEndClicked)
 	{
-		if ((*g_NodeEnd).isEnd)
-		{
-			Rectangle(hdc, (*g_NodeEnd).x * 10 + 1, (*g_NodeEnd).y * 10 + 1, (*g_NodeEnd).x * 10 + 10, (*g_NodeEnd).y * 10 + 10);
-		}
+		Rectangle(hdc, g_iEndX * 10 + 1, g_iEndY * 10 + 1, g_iEndX * 10 + 10, g_iEndY * 10 + 10);
 	}
 	SelectObject(hdc, OldPen);
 	SelectObject(hdc, OldBrush);
+}
+
+void PrintBlock(HDC hdc)
+{
+
+	HBRUSH OldBrush;
+	HPEN OldPen;
 
 	OldPen = (HPEN)SelectObject(hdc, MyBrushGray);
 	OldBrush = (HBRUSH)SelectObject(hdc, MyPenGray);
-
-	//if (g_NodeBlock != nullptr)
-	//{
-	//	if ((*g_NodeBlock).isBlock)
-	//	{
-	//		Rectangle(hdc, (*g_NodeBlock).x * 10 + 1, (*g_NodeBlock).y * 10 + 1, (*g_NodeBlock).x * 10 + 10, (*g_NodeBlock).y * 10 + 10);
-	//	}
-	//}
 
 	for (int i = 0; i < 100; i++)
 	{
@@ -367,29 +372,256 @@ void PrintStartAndEnd(HDC hdc)
 	SelectObject(hdc, OldPen);
 	SelectObject(hdc, OldBrush);
 
-	DeleteObject(MyPenGreen);
-	DeleteObject(MyBrushGreen);
-
-	DeleteObject(MyBrushRed);
-	DeleteObject(MyPenRed);
-
-	DeleteObject(MyBrushGray);
-	DeleteObject(MyPenGray);
 }
 
-void AStarAlgorithm(int x, int y)
+void PrintOpen(HDC hdc)
 {
-	if ((*g_PointStart).X == (*g_PointEnd).X && (*g_PointStart).Y == (*g_PointEnd).Y)
-		return;
+	HBRUSH OldBrush;
+	HPEN OldPen;
 
-	if (x < 0)
+	OldPen = (HPEN)SelectObject(hdc, MyBrushBlue);
+	OldBrush = (HBRUSH)SelectObject(hdc, MyPenBlue);
+
+	for (std::list<POINTNODE*>::iterator itor = OpenNode.begin(); itor != OpenNode.end(); itor++)
+	{
+		Rectangle(hdc, (*itor)->X * 10 + 1, (*itor)->Y * 10 + 1, (*itor)->X * 10 + 10, (*itor)->Y * 10 + 10);
+	}
+	SelectObject(hdc, OldPen);
+	SelectObject(hdc, OldBrush);
+	CloseListAndMap();
+}
+
+void CloseListAndMap()
+{
+	std::list<POINTNODE*>::iterator itor = OpenNode.begin();
+	while (true)
+	{
+		if (itor == OpenNode.end())
+			break;
+		else
+		{
+			delete* itor;
+			itor = OpenNode.erase(itor);
+		}
+	}
+
+	std::map<std::pair<int, int>, POINTNODE*>::iterator itor2 = CloseNode.begin();
+	while (true)
+	{
+		if (itor2 == CloseNode.end())
+			break;
+		else
+		{
+			POINTNODE* temp = itor2->second;
+			delete temp;
+			itor2 = CloseNode.erase(CloseNode.find(itor2->first));
+		}
+
+	}
+	
+	g_bIsStartDeleted = true;
+}
+
+bool IsAvailableToMove(int x, int y)
+{
+	bool available = true;
+	if (g_NodeArray[y][x].isBlock == true)
+		available = false;
+
+	if (x < 0 || x >= 100 || y < 0 || y >= 100)
+		available = false;
+	return available;
+}
+
+POINTNODE* IsInOpen(int x, int y)
+{
+	POINTNODE* temp = nullptr;
+	std::list<POINTNODE*>::iterator itor = OpenNode.begin();
+	for (; itor != OpenNode.end(); itor++)
+	{
+		if ((*itor)->X == x && (*itor)->Y == y)
+			temp = (*itor);
+	}
+	return temp;
+}
+
+POINTNODE* IsInClose(int x, int y)
+{
+	POINTNODE* temp = nullptr;
+	std::map<const std::pair<int, int>, POINTNODE*>::iterator itor;
+	itor = CloseNode.find(std::make_pair(x, y));
+	if (itor == CloseNode.end())
+		temp = nullptr;
+	else
+		temp = itor->second;
+	return temp;
+}
+
+POINTNODE* AStarAlgorithm(int start_x, int start_y, int end_x, int end_y ,HDC hdc)
+{
+	// 시작점
+	POINTNODE* current = nullptr;
+	
+	OpenNode.sort(SortingList);
+
+	current = (*OpenNode.begin());
+	//CloseNode.insert(std::make_pair(std::make_pair(current->X, current->Y), current));
+
+	current->G = 0;
+	current->H = abs(end_x - start_x) + abs(end_y - start_y);
+	current->F = current->G + current->H;
+
+	POINTNODE* best = nullptr;
+
+	while (OpenNode.size() != 0)
+	{
+		OpenNode.sort(SortingList);
+		best = (*OpenNode.begin());
+		OpenNode.pop_front();
+		CloseNode.insert(std::make_pair(std::make_pair(best->X, best->Y), best));
+
+		if (best->X == end_x && best->Y == end_y)
+		{
+			return best;
+		}
+
+		if (best == nullptr)
+			return nullptr;
+
+		if (MakeChildNode(best, best->X, best->Y, hdc) == false)
+			return nullptr;
+
+	}
+
+	return best;
+}
+
+bool MakeChildNode(POINTNODE* node, int start_x, int start_y, HDC hdc)
+{
+	bool result = false;
+	int x = node->X;
+	int y = node->Y;
+
+	// 왼쪽
+	if (IsAvailableToMove(x - 1, y))
+	{
+		ExtendNode(node, x - 1, y, g_iEndX, g_iEndY, false, hdc);
+		result = true;
+	}
+
+	// 왼쪽 위
+	if (IsAvailableToMove(x - 1, y + 1))
+	{
+		ExtendNode(node, x - 1, y + 1, g_iEndX, g_iEndY, true, hdc);
+		result = true;
+	}
+
+	// 위
+	if (IsAvailableToMove(x , y + 1))
+	{
+		ExtendNode(node, x , y + 1, g_iEndX, g_iEndY, false, hdc);
+		result = true;
+	}
+
+	// 오른쪽 위
+	if (IsAvailableToMove(x + 1, y + 1))
+	{
+		ExtendNode(node, x + 1, y + 1, g_iEndX, g_iEndY, true, hdc);
+		result = true;
+	}
+	
+	// 오른쪽
+	if (IsAvailableToMove(x + 1, y))
+	{
+		ExtendNode(node, x + 1, y, g_iEndX, g_iEndY, false, hdc);
+		result = true;
+	}
+
+	// 오른쪽 아래
+	if (IsAvailableToMove(x + 1, y - 1))
+	{
+		ExtendNode(node, x + 1, y - 1, g_iEndX, g_iEndY, true, hdc);
+		result = true;
+	}
+
+	// 아래
+	if (IsAvailableToMove(x, y - 1))
+	{
+		ExtendNode(node, x, y - 1, g_iEndX, g_iEndY, false, hdc);
+		result = true;
+	}
+
+	// 왼쪽 아래
+	if (IsAvailableToMove(x - 1, y - 1))
+	{
+		ExtendNode(node, x - 1, y - 1, g_iEndX, g_iEndY, true, hdc);
+		result = true;
+	}
+	return result;
+}
+
+void ExtendNode(POINTNODE* node, int current_x, int current_y, int dest_x, int dest_y, bool isDiagonal, HDC hdc)
+{
+	HBRUSH OldBrush;
+	HPEN  OldPen;
+
+	OldPen = (HPEN)SelectObject(hdc, MyBrushYellow);
+	OldBrush = (HBRUSH)SelectObject(hdc, MyPenYellow);
+	POINTNODE* old = IsInOpen(current_x, current_y);
+	POINTNODE* child = nullptr;
+
+	// 새로 만들 자리의 노드에 이미 노드가 생성되어 있다면
+	if (IsInOpen(current_x, current_y) != nullptr)
+	{
+		if (node->F < old->F)
+		{
+			old->Parent = node;
+			old->G = node->G + 1;
+			old->F = old->G + old->H;
+		}
+	}
+	// 이미 지나갔었던 자리의 노드에 새로 생성하려는 경우
+	else if (IsInClose(current_x, current_y) != nullptr)
+	{
 		return;
-	if (x >= 100)
-		return;
-	if (y < 0)
-		return;
-	if (y >= 100)
-		return;
+	}
+	else
+	{
+		POINTNODE* newNode = new POINTNODE(current_x, current_y);
+		if (isDiagonal)
+			newNode->G += 1.5;
+		else
+			newNode->G += 1;
+		newNode->H = abs(current_x - dest_x) + abs(current_y - dest_y);
+		newNode->F = newNode->G + newNode->H;
+		newNode->Parent = node;
+		Rectangle(hdc, newNode->X * 10 + 1, newNode->Y * 10 + 1, newNode->X * 10 + 10, newNode->Y * 10 + 10);
+
+		OpenNode.push_back(newNode);
+	}
+
+	SelectObject(hdc, OldPen);
+	SelectObject(hdc, OldBrush);
+
+}
+
+void PrintRoute(HDC hdc, POINTNODE* best)
+{
+	HBRUSH OldBrush;
+	HPEN OldPen;
+
+	OldPen = (HPEN)SelectObject(hdc, MyPenRed);
+	OldBrush = (HBRUSH)SelectObject(hdc, MyBrushRed);
+
+	POINTNODE* temp = best;
+	while (temp->Parent != nullptr)
+	{
+		MoveToEx(hdc, (temp->Parent->X * 10)+5, (temp->Parent->Y * 10) + 5 , NULL);
+		LineTo(hdc, (temp->X * 10) + 5, (temp->Y * 10) + 5);
+		temp = temp->Parent;
+	}
+	SelectObject(hdc, OldPen);
+	SelectObject(hdc, OldBrush);
 }
 
 //  
