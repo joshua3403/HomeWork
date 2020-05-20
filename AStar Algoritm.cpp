@@ -38,12 +38,12 @@ typedef struct tag_ST_PointNode
 		F = 0;
 		G = 0;
 		H = 0;
-		printf("create %d %d\n", X, Y);
+		//printf("create %d %d\n", X, Y);
 
 	}
 	~tag_ST_PointNode()
 	{
-		printf("delete %d %d\n", X, Y);
+		//printf("delete %d %d\n", X, Y);
 	}
 } POINTNODE;
 
@@ -64,12 +64,13 @@ bool SortingList(const POINTNODE* lhs, const POINTNODE* rhs)
 std::list<POINTNODE*> OpenNode;	
 std::map<const std::pair<int, int>, POINTNODE*> CloseNode;
 
-bool g_bEndClicked;
-bool g_bStartClicked;
+bool g_bEndClicked = false;
+bool g_bStartClicked = false;
 int g_iEndX = 0, g_iEndY = 0, g_iStartX = 0, g_iStartY = 0;
 POSITIONNODE* g_NodeBlock = nullptr;
 POSITIONNODE g_NodeArray[100][100];
 POINTNODE* g_startNode = nullptr;
+bool g_bAlgorithmStart = false;
 
 HBRUSH MyBrushYellow = CreateSolidBrush(RGB(255, 255, 0));
 HPEN MyPenYellow = CreatePen(PS_SOLID, 1, RGB(255, 255, 255));
@@ -94,7 +95,7 @@ bool IsAvailableToMove(int x, int y);
 POINTNODE* IsInOpen(int x, int y);
 POINTNODE* IsInClose(int x, int y);
 POINTNODE* AStarAlgorithm(int start_x, int start_y, int end_x, int end_y, HDC hdc);
-bool MakeChildNode(POINTNODE* node, int start_x, int start_y, HDC hdc);
+bool MakeChildNode(POINTNODE* node, HDC hdc);
 void ExtendNode(POINTNODE* node, int current_x, int current_y, int dest_x, int dest_y, bool isDiagonal, HDC hdc);
 void PrintRoute(HDC hdc, POINTNODE* best);
 
@@ -180,7 +181,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		PrintStart(hdc);
 		PrintBlock(hdc);
 		// A Star Algoritm start
-		if (g_bEndClicked && g_bStartClicked)
+		g_bAlgorithmStart = g_bEndClicked && g_bStartClicked;
+		if(g_bAlgorithmStart)
 		{
 			g_startNode = new POINTNODE(g_iStartX, g_iStartY);
 			g_startNode->H = abs(g_iStartX - g_iEndX) + abs(g_iStartY - g_iEndY);
@@ -189,10 +191,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			BestRoute = AStarAlgorithm(g_iStartX, g_iStartY, g_iEndX, g_iEndY, hdc);
 			PrintRoute(hdc, BestRoute);
 		}
+		g_bAlgorithmStart = !g_bAlgorithmStart;
 		PrintOpen(hdc);
 
 		PrintEnd(hdc);
-
 		EndPaint(hWnd, &ps);
 		break;
 
@@ -298,7 +300,7 @@ void InitialArray()
 
 void PrintGrid(HDC hdc)
 {
-	int postX, postY, nextX, nextY;
+	int postX, postY;
 	postX = postY = 0;
 
 	for (postX = 10; postX <= 1000; postX += 10)
@@ -462,7 +464,7 @@ POINTNODE* AStarAlgorithm(int start_x, int start_y, int end_x, int end_y ,HDC hd
 	// 시작점
 	POINTNODE* current = nullptr;
 	
-	OpenNode.sort(SortingList);
+	//OpenNode.sort(SortingList);
 
 	current = (*OpenNode.begin());
 	//CloseNode.insert(std::make_pair(std::make_pair(current->X, current->Y), current));
@@ -476,6 +478,7 @@ POINTNODE* AStarAlgorithm(int start_x, int start_y, int end_x, int end_y ,HDC hd
 	while (OpenNode.size() != 0)
 	{
 		OpenNode.sort(SortingList);
+
 		best = (*OpenNode.begin());
 		OpenNode.pop_front();
 		CloseNode.insert(std::make_pair(std::make_pair(best->X, best->Y), best));
@@ -488,7 +491,7 @@ POINTNODE* AStarAlgorithm(int start_x, int start_y, int end_x, int end_y ,HDC hd
 		if (best == nullptr)
 			return nullptr;
 
-		if (MakeChildNode(best, best->X, best->Y, hdc) == false)
+		if (MakeChildNode(best, hdc) == false)
 			return nullptr;
 
 	}
@@ -496,7 +499,7 @@ POINTNODE* AStarAlgorithm(int start_x, int start_y, int end_x, int end_y ,HDC hd
 	return best;
 }
 
-bool MakeChildNode(POINTNODE* node, int start_x, int start_y, HDC hdc)
+bool MakeChildNode(POINTNODE* node, HDC hdc)
 {
 	bool result = false;
 	int x = node->X;
@@ -510,23 +513,23 @@ bool MakeChildNode(POINTNODE* node, int start_x, int start_y, HDC hdc)
 	}
 
 	// 왼쪽 위
-	if (IsAvailableToMove(x - 1, y + 1))
+	if (IsAvailableToMove(x - 1, y - 1))
 	{
-		ExtendNode(node, x - 1, y + 1, g_iEndX, g_iEndY, true, hdc);
+		ExtendNode(node, x - 1, y - 1, g_iEndX, g_iEndY, true, hdc);
 		result = true;
 	}
 
 	// 위
-	if (IsAvailableToMove(x , y + 1))
+	if (IsAvailableToMove(x , y - 1))
 	{
-		ExtendNode(node, x , y + 1, g_iEndX, g_iEndY, false, hdc);
+		ExtendNode(node, x , y - 1, g_iEndX, g_iEndY, false, hdc);
 		result = true;
 	}
 
 	// 오른쪽 위
-	if (IsAvailableToMove(x + 1, y + 1))
+	if (IsAvailableToMove(x + 1, y - 1))
 	{
-		ExtendNode(node, x + 1, y + 1, g_iEndX, g_iEndY, true, hdc);
+		ExtendNode(node, x + 1, y - 1, g_iEndX, g_iEndY, true, hdc);
 		result = true;
 	}
 	
@@ -538,25 +541,36 @@ bool MakeChildNode(POINTNODE* node, int start_x, int start_y, HDC hdc)
 	}
 
 	// 오른쪽 아래
-	if (IsAvailableToMove(x + 1, y - 1))
+	if (IsAvailableToMove(x + 1, y + 1))
 	{
-		ExtendNode(node, x + 1, y - 1, g_iEndX, g_iEndY, true, hdc);
+		ExtendNode(node, x + 1, y + 1, g_iEndX, g_iEndY, true, hdc);
 		result = true;
 	}
 
 	// 아래
-	if (IsAvailableToMove(x, y - 1))
+	if (IsAvailableToMove(x, y + 1))
 	{
-		ExtendNode(node, x, y - 1, g_iEndX, g_iEndY, false, hdc);
+		ExtendNode(node, x, y + 1, g_iEndX, g_iEndY, false, hdc);
 		result = true;
 	}
 
 	// 왼쪽 아래
-	if (IsAvailableToMove(x - 1, y - 1))
+	if (IsAvailableToMove(x - 1, y + 1))
 	{
-		ExtendNode(node, x - 1, y - 1, g_iEndX, g_iEndY, true, hdc);
+		ExtendNode(node, x - 1, y + 1, g_iEndX, g_iEndY, true, hdc);
 		result = true;
+
 	}
+	OpenNode.sort(SortingList);
+	//printf("-------start-------\n");
+
+	//for (std::list<POINTNODE*>::iterator itor = OpenNode.begin(); itor != OpenNode.end(); itor++)
+	//{
+	//	printf("node : x = %d, y = %d, F = %f\n", (*itor)->X, (*itor)->Y, (*itor)->F);
+
+	//}
+	//printf("-------end-------\n");
+
 	return result;
 }
 
@@ -568,34 +582,59 @@ void ExtendNode(POINTNODE* node, int current_x, int current_y, int dest_x, int d
 	OldPen = (HPEN)SelectObject(hdc, MyBrushYellow);
 	OldBrush = (HBRUSH)SelectObject(hdc, MyPenYellow);
 	POINTNODE* old = IsInOpen(current_x, current_y);
+	POINTNODE* oldClose = IsInClose(current_x, current_y);
 	POINTNODE* child = nullptr;
 
 	// 새로 만들 자리의 노드에 이미 노드가 생성되어 있다면
-	if (IsInOpen(current_x, current_y) != nullptr)
+	if (old != nullptr)
 	{
 		if (node->F < old->F)
 		{
 			old->Parent = node;
-			old->G = node->G + 1;
+
+			if (isDiagonal)
+				old->G = old->G + 1.5;
+			else
+				old->G = old->G + 1;
+
 			old->F = old->G + old->H;
+
+			//printf("oldNode(%d, %d) : F = %f, G = %f, H = %f, Parent = (%d, %d)\n", old->X, old->Y, old->F, old->G, old->H, node->X, node->Y);
+			//if (IsInClose(node->X, node->Y) != nullptr)
+			//{
+			//	OpenNode.push_back(old);
+			//	CloseNode.erase(CloseNode.find(std::make_pair(node->X, node->Y)));
+			//}
+
+			OpenNode.sort(SortingList);
 		}
 	}
 	// 이미 지나갔었던 자리의 노드에 새로 생성하려는 경우
-	else if (IsInClose(current_x, current_y) != nullptr)
+	else if (oldClose != nullptr)
 	{
+		//if (node->F < oldClose->F)
+		//{
+		//	oldClose->Parent = node;
+		//	oldClose->G = node->G + 1;
+		//	oldClose->F = oldClose->G + oldClose->H;
+		//}
 		return;
 	}
 	else
 	{
 		POINTNODE* newNode = new POINTNODE(current_x, current_y);
-		if (isDiagonal)
-			newNode->G += 1.5;
-		else
-			newNode->G += 1;
+
 		newNode->H = abs(current_x - dest_x) + abs(current_y - dest_y);
-		newNode->F = newNode->G + newNode->H;
 		newNode->Parent = node;
+		if (isDiagonal)
+			newNode->G = newNode->Parent->G + 1.5;
+		else
+			newNode->G = newNode->Parent->G + 1;
+		newNode->F = newNode->G + newNode->H;
+
 		Rectangle(hdc, newNode->X * 10 + 1, newNode->Y * 10 + 1, newNode->X * 10 + 10, newNode->Y * 10 + 10);
+
+		printf("newNode(%d, %d) : F = %f, G = %f, H = %f, Parent = (%d, %d)\n", newNode->X, newNode->Y,newNode->F, newNode->G, newNode->H,newNode->Parent->X, newNode->Parent->Y);
 
 		OpenNode.push_back(newNode);
 	}
@@ -618,6 +657,8 @@ void PrintRoute(HDC hdc, POINTNODE* best)
 	{
 		MoveToEx(hdc, (temp->Parent->X * 10)+5, (temp->Parent->Y * 10) + 5 , NULL);
 		LineTo(hdc, (temp->X * 10) + 5, (temp->Y * 10) + 5);
+
+		//printf("Best : x = %d, y = %d\n", temp->X, temp->Y);
 		temp = temp->Parent;
 	}
 	SelectObject(hdc, OldPen);
