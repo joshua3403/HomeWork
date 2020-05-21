@@ -37,6 +37,7 @@ void AStarPathFinding::FindPath(int current_x, int current_y, int end_x, int end
 	{
 		ContinuePath();
 		m_bInitializedStartGoal = !m_bInitializedStartGoal;
+		printf("%d, %d\n", m_vOpenList.size(), m_vCloseList.size());
 	}
 }
 
@@ -133,9 +134,7 @@ void AStarPathFinding::PathOpened(int x, int y, float newG, NODE* parent)
 	NODE* newChild = new NODE(x, y, parent);
 	newChild->G = newG;
 	newChild->H = parent->ManHattanDistance(m_pGoalNode);
-	Rectangle(m_hdc, x * 10 + 1, y * 10 + 1, x * 10 + 10, y * 10 + 10);
-	SelectObject(m_hdc, MyPenYellow);
-	SelectObject(m_hdc, MyBrushYellow);
+
 	for (int i = 0; i < m_vOpenList.size(); i++)
 	{
 		if (id == m_vOpenList[i]->ID)
@@ -154,6 +153,14 @@ void AStarPathFinding::PathOpened(int x, int y, float newG, NODE* parent)
 			}
 		}
 	}
+
+	if (newChild != nullptr)
+	{
+		Rectangle(m_hdc, x * 10 + 1, y * 10 + 1, x * 10 + 10, y * 10 + 10);
+
+	}
+	SelectObject(m_hdc, MyPenYellow);
+	SelectObject(m_hdc, MyBrushYellow);
 
 	m_vOpenList.push_back(newChild);
 }
@@ -190,9 +197,11 @@ void AStarPathFinding::ContinuePath()
 
 	while (!m_vOpenList.empty())
 	{
+		// OpenList에서 제익 작은 F값을 가진 노드를 가져온다.
+		// 가져온 NODE는 CloseList로 넣어준다.
 		NODE* currentNode = GetNextNode();
 
-
+		// OpenList에서 가져온 NODE가 목표 NODE와 일치한다면
 		if (currentNode->ID == m_pGoalNode->ID)
 		{
 			m_pGoalNode->Parent = currentNode->Parent;

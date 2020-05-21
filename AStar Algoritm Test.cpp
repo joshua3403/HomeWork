@@ -121,13 +121,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			AStarPathFind.SetDC(hdc);
 			AStarPathFind.FindPath(g_iStartX, g_iStartY, g_iEndX, g_iEndY);
+			PrintOpen(hdc);
+
 		}
 		else
 		{
 			AStarPathFind.ClearVector();
 		}
 		g_bAlgorithmStart = !g_bAlgorithmStart;
-		PrintOpen(hdc);
 		PrintRoute(hdc);
 
 		PrintEnd(hdc);
