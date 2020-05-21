@@ -60,9 +60,7 @@ public:
 	~AStarPathFinding();
 
 	void FindPath(int current_x, int current_y, int end_x, int end_y);
-	POSITION NextPathPos();
 
-	void ClearPathToGal() { m_vPathToGoal.clear(); }
 	void SetDC(HDC hdc);
 
 	std::vector<NODE*> GetOpenList();

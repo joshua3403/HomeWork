@@ -37,20 +37,9 @@ void AStarPathFinding::FindPath(int current_x, int current_y, int end_x, int end
 	{
 		ContinuePath();
 		m_bInitializedStartGoal = !m_bInitializedStartGoal;
-		printf("%d, %d\n", m_vOpenList.size(), m_vCloseList.size());
 	}
 }
 
-POSITION AStarPathFinding::NextPathPos()
-{
-	int index = 1;
-
-	POSITION nextPos;
-	nextPos.X = m_vPathToGoal[m_vPathToGoal.size() - index]->X;
-	nextPos.Y = m_vPathToGoal[m_vPathToGoal.size() - index]->Y;
-
-	return nextPos;
-}
 
 void AStarPathFinding::SetPointBlock(int x, int y)
 {
@@ -102,7 +91,6 @@ void AStarPathFinding::SetStartAndGoal(NODE start, NODE goal)
 
 	m_pStartNode->G = 0;
 	m_pStartNode->H = m_pStartNode->ManHattanDistance(m_pGoalNode);
-	m_pStartNode->Parent = nullptr;
 
 	m_vOpenList.push_back(m_pStartNode);
 }
