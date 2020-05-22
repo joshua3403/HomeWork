@@ -126,30 +126,361 @@ bool CJPS::CheckTile(int x, int y)
 	return true;
 }
 
-bool CJPS::CheckJumpNode(int current_x, int current_y, e_Direction dir)
+void CJPS::MakeNode(int current_x, int current_y, NODE* nowNode, e_Direction dir)
 {
-	int check = false;
-	switch (dir)
+	
+	int newNodeX = 0;
+	int newNodeY = 0;
+	float newNodeG = 0;
+
+	if (!CheckTile(current_x, current_y))
+		return;
+
+	if (JumpCheck(current_x, current_y, &newNodeX, &newNodeY, nowNode->G, &newNodeG, dir))
 	{
-		// 위
-		case e_Direction::UP:
-			// 왼쪽이 막혀있고, 왼쪽 위가 뚫렸는지 확인. 오른쪽이 막혀있고, 오른쪽 위가 뚫렸는지 확인.
-			if ((CheckTile(current_x - 1, current_y - 1) && m_NodeArray[current_y][current_x - 1].isBlock && m_NodeArray[current_y - 1][current_x - 1].isBlock == false) || (CheckTile(current_x + 1, current_y - 1) && m_NodeArray[current_y][current_x + 1].isBlock && m_NodeArray[current_y - 1][current_x + 1].isBlock == false))
-				check = true;
+		NODE* newNode = new NODE(newNodeX, newNodeY, nowNode);
+		newNode->H = newNode->ManHattanDistance(m_pGoalNode);
+		newNode->G = newNodeG;
+	}
+}
+
+bool CJPS::JumpCheck(int current_x, int current_y, int* newX, int* newY, float currentG, float* newG, e_Direction dir)
+{
+	int tempG = 0;
+	if(!CheckTile(current_x, current_y))
+		return false;
+	if (dir == e_Direction::DOWN || dir == e_Direction::UP || dir == e_Direction::RIGHT || dir == e_Direction::LEFT)
+		tempG = currentG + 1;
+	else
+		tempG = currentG + 1.4f;
+
+	if (current_x == m_pGoalNode->x && current_y == m_pGoalNode->y)
+	{
+		*newX = current_x;
+		*newY = current_y;
+		*newG = currentG;
+		return true;
+	}
+	else
+	{
+		switch (dir)
+		{
+			// 아래
+		case e_Direction::DOWN:
+			if (CornerCheck(current_x, current_y, dir))
+			{
+				*newX = current_x;
+				*newY = current_y;
+				*newG = currentG;
+				return true;
+			}
+
+			return JumpCheck(current_x, current_y + 1, newX, newY, currentG + 1, newG, dir);
 			break;
 
-		// 오른쪽 위
+			// 왼쪽 아래
+		case e_Direction::DOWNLEFT:
+			if (CornerCheck(current_x, current_y, dir))
+			{
+				*newX = current_x;
+				*newY = current_y;
+				*newG = currentG;
+				return true;
+			}
+
+			if (JumpCheck(current_x - 1, current_y, newX, newY, currentG + 1, newG, dir) || JumpCheck(current_x, current_y + 1, newX, newY, currentG + 1, newG, dir))
+			{
+				*newX = current_x;
+				*newY = current_y;
+				*newG = currentG;
+				return true;
+			}
+
+			return JumpCheck(current_x - 1, current_y + 1, newX, newY, currentG + 1.4f, newG, dir);
+			break;
+
+			// 왼쪽
+		case e_Direction::LEFT:
+			if (CornerCheck(current_x, current_y, dir))
+			{
+				*newX = current_x;
+				*newY = current_y;
+				*newG = currentG;
+				return true;
+			}
+
+			return JumpCheck(current_x - 1, current_y, newX, newY, currentG + 1, newG, dir);
+			break;
+
+			// 왼쪽 위
+		case e_Direction::LEFTUP:
+			if (CornerCheck(current_x, current_y, dir))
+			{
+				*newX = current_x;
+				*newY = current_y;
+				*newG = currentG;
+				return true;
+			}
+
+
+			if (JumpCheck(current_x - 1, current_y, newX, newY, currentG + 1, newG, dir) || JumpCheck(current_x, current_y - 1, newX, newY, currentG + 1, newG, dir))
+			{
+				*newX = current_x;
+				*newY = current_y;
+				*newG = currentG;
+				return true;
+			}
+
+			return  JumpCheck(current_x - 1, current_y - 1, newX, newY, currentG + 1.4f, newG, dir);
+			break;
+
+			// 위
+		case e_Direction::UP:
+			if (CornerCheck(current_x, current_y, dir))
+			{
+				*newX = current_x;
+				*newY = current_y;
+				*newG = currentG;
+				return true;
+			}
+			return JumpCheck(current_x, current_y - 1, newX, newY, currentG + 1, newG, dir);
+			break;
+
+			// 오른쪽 위
 		case e_Direction::UPRIGHT:
-			// 왼쪽이 막혀있고, 왼쪽 위가 뚫려있는지 확인. 아래가 막혀있고, 오른쪽 아래가 뚫렸는지 확인.
-			if ((CheckTile(current_x + 1, current_y - 1) && m_NodeArray[current_y][current_x - 1].isBlock && m_NodeArray[current_y - 1][current_x - 1].isBlock == false) || (CheckTile(current_x + 1, current_y + 1) && m_NodeArray[current_y + 1][current_x].isBlock && m_NodeArray[current_y + 1][current_x + 1].isBlock == false))
-				check = true;
+			if (CornerCheck(current_x, current_y, dir))
+			{
+				*newX = current_x;
+				*newY = current_y;
+				*newG = currentG;
+				return true;
+			}
+
+			if (JumpCheck(current_x + 1, current_y, newX, newY, currentG + 1, newG, dir) || JumpCheck(current_x, current_y - 1, newX, newY, currentG + 1, newG, dir))
+			{
+				*newX = current_x;
+				*newY = current_y;
+				*newG = currentG;
+				return true;
+			}
+
+			return  JumpCheck(current_x + 1, current_y - 1, newX, newY, currentG + 1.4f, newG, dir);
 			break;
 
 			// 오른쪽
 		case e_Direction::RIGHT:
-			// 위가 막혀있고, 오른쪽 위가 뚫렸는지 확인. 아래가 막혀있고, 오른쪽 아래가 뚫렸는지 확인.
-			if ((CheckTile(current_x + 1, current_y - 1) && m_NodeArray[current_y - 1][current_x].isBlock && m_NodeArray[current_y - 1][current_x + 1].isBlock == false) || (CheckTile(current_x + 1, current_y + 1) && m_NodeArray[current_y + 1][current_x].isBlock && m_NodeArray[current_y + 1][current_x + 1].isBlock == false))
-				check = true;
+			if (CornerCheck(current_x, current_y, dir))
+			{
+				*newX = current_x;
+				*newY = current_y;
+				*newG = currentG;
+				return true;
+			}
+			return JumpCheck(current_x + 1, current_y, newX, newY, currentG + 1, newG, dir);
+
 			break;
+
+			// 오른쪽 아래
+		case e_Direction::RIGHTDOWN:
+			if (CornerCheck(current_x, current_y, dir))
+			{
+				*newX = current_x;
+				*newY = current_y;
+				*newG = currentG;
+				return true;
+			}
+			if (JumpCheck(current_x + 1, current_y, newX, newY, currentG + 1, newG, dir) || JumpCheck(current_x, current_y + 1, newX, newY, currentG + 1, newG, dir))
+			{
+				*newX = current_x;
+				*newY = current_y;
+				*newG = currentG;
+				return true;
+			}
+			return  JumpCheck(current_x + 1, current_y + 1, newX, newY, currentG + 1.4f, newG, dir);
+
+			break;
+		}
+
 	}
 }
+
+bool CJPS::CornerCheck(int current_x, int current_y, e_Direction dir)
+{
+	switch (dir)
+	{
+		// 아래
+	case e_Direction::DOWN:
+		// 왼쪽이 막혀있고 왼쪽 아래가 뚫려있거나, 오른쪽이 막혀있고 오른쪽 아래가 뚫려있으면 코너 생성 가능
+		if ((CheckTile(current_x - 1, current_y + 1) && m_NodeArray[current_y][current_x - 1].isBlock && m_NodeArray[current_y + 1][current_x - 1].isBlock == false) || (CheckTile(current_x + 1, current_y + 1) && m_NodeArray[current_y][current_x + 1].isBlock && m_NodeArray[current_y + 1][current_x + 1].isBlock == false))
+			return true;
+
+		break;
+
+		// 왼쪽 아래
+	case e_Direction::DOWNLEFT:
+		// 위가 막혀있고 왼쪽 위가 뚫려있거나, 오른쪽이 막혀있고 오른쪽 아래가 뚫려있으면 코너 생성 가능
+		if ((CheckTile(current_x - 1, current_y - 1) && m_NodeArray[current_y - 1][current_x].isBlock && m_NodeArray[current_y - 1][current_x - 1].isBlock == false) || (CheckTile(current_x + 1, current_y + 1) && m_NodeArray[current_y][current_x + 1].isBlock && m_NodeArray[current_y + 1][current_x + 1].isBlock == false))
+			return true;
+
+		break;
+
+		// 왼쪽
+	case e_Direction::LEFT:
+		// 위가 막혀있고 왼쪽 위가 뚫려있거나, 아래가 막혀있고 왼쪽 아래가 뚫려있으면 코너 생성 가능
+		if ((CheckTile(current_x - 1, current_y - 1) && m_NodeArray[current_y - 1][current_x].isBlock && m_NodeArray[current_y - 1][current_x - 1].isBlock == false) || (CheckTile(current_x - 1, current_y + 1) && m_NodeArray[current_y + 1][current_x].isBlock && m_NodeArray[current_y + 1][current_x - 1].isBlock == false))
+			return true;
+
+		break;
+
+		// 왼쪽 위
+	case e_Direction::LEFTUP:
+		// 아래가 막혀있고 왼쪽 아래가 뚫려있거나, 오른쪽이 막혀있고 오른쪽 위가 뚫려있으면 코너 생성 가능
+		if ((CheckTile(current_x - 1, current_y + 1) && m_NodeArray[current_y + 1][current_x].isBlock && m_NodeArray[current_y + 1][current_x + 1].isBlock == false) || (CheckTile(current_x + 1, current_y + 1) && m_NodeArray[current_y][current_x + 1].isBlock && m_NodeArray[current_y + 1][current_x + 1].isBlock == false))
+			return true;
+		break;
+
+		// 위
+	case e_Direction::UP:
+		// 왼쪽이 막혀있고 왼쪽 위가 뚫려있거나, 오른쪽이막혀있고 오른쪽 위가 뚫려있으면 코너 생성 가능
+		if ((CheckTile(current_x - 1, current_y - 1) && m_NodeArray[current_y][current_x - 1].isBlock && m_NodeArray[current_y - 1][current_x - 1].isBlock == false) || (CheckTile(current_x + 1, current_y - 1) && m_NodeArray[current_y][current_x + 1].isBlock && m_NodeArray[current_y - 1][current_x + 1].isBlock == false))
+			return true;
+
+		break;
+
+		// 오른쪽 위
+	case e_Direction::UPRIGHT:
+		// 왼쪽이 막혀있고 왼쪽 위가 뚫려있거나, 아래가 막혀있고 오른쪽 아래가 뚫려있으면 코너 생성 가능
+		if ((CheckTile(current_x - 1, current_y - 1) && m_NodeArray[current_y][current_x - 1].isBlock && m_NodeArray[current_y - 1][current_x - 1].isBlock == false) || (CheckTile(current_x + 1, current_y + 1) && m_NodeArray[current_y + 1][current_x].isBlock && m_NodeArray[current_y + 1][current_x + 1].isBlock == false))
+			return true;
+		break;
+
+		// 오른쪽
+	case e_Direction::RIGHT:
+		// 위가 막혀있고 오른쪽 위가 뚫려있거나, 아래가 막혀있고 오른쪽 아래가 뚫려있으면 코너 생성 가능
+		if ((CheckTile(current_x + 1, current_y - 1) && m_NodeArray[current_y - 1][current_x].isBlock && m_NodeArray[current_y - 1][current_x + 1].isBlock == false) || (CheckTile(current_x + 1, current_y + 1) && m_NodeArray[current_y + 1][current_x].isBlock && m_NodeArray[current_y + 1][current_x + 1].isBlock == false))
+			return true;
+		break;
+
+		// 오른쪽 아래
+	case e_Direction::RIGHTDOWN:
+		// 위가 막혀있고 오른쪽 위가 뚫려있거나, 왼쪽이 막혀있고 왼쪽 아래가 뚫려있으면 코너 생성 가능
+		if ((CheckTile(current_x + 1, current_y - 1) && m_NodeArray[current_y - 1][current_x].isBlock && m_NodeArray[current_y - 1][current_x + 1].isBlock == false) || (CheckTile(current_x - 1, current_y + 1) && m_NodeArray[current_y][current_x - 1].isBlock && m_NodeArray[current_y + 1][current_x - 1].isBlock == false))
+			return true;
+		break;
+
+	}
+	return false;
+}
+
+void CJPS::ContinueFindingPath()
+{
+	while (!m_vOpenList.empty())
+	{
+		NODE* currentNode = GetNextNode();
+
+		if (currentNode->ID == m_pGoalNode->ID)
+		{
+			m_pGoalNode->Parent = currentNode->Parent;
+
+			NODE* getPath;
+			for (getPath = m_pGoalNode; getPath->Parent != nullptr; getPath = getPath->Parent)
+			{
+				m_vPathToGoal.push_back(new POSITION(getPath->x, getPath->y));
+			}
+
+			m_bFoundGoal = true;
+			return;
+		}
+		else
+		{
+
+			switch (currentNode->Dir)
+			{
+				// 방향이 없는 부모노드의 경우
+			case e_Direction::NONE:
+				// 8방향으로 찾아나간다.
+				// 아래
+				if (CheckTile(currentNode->x, currentNode->y + 1))
+				{
+					MakeNode(currentNode->x, currentNode->y + 1, currentNode, e_Direction::DOWN);
+				}
+				// 왼쪽 아래
+				if (CheckTile(currentNode->x - 1, currentNode->y + 1))
+				{
+					MakeNode(currentNode->x - 1, currentNode->y + 1, currentNode, e_Direction::DOWNLEFT);
+
+				}
+				// 왼쪽
+				if (CheckTile(currentNode->x - 1, currentNode->y))
+				{
+					MakeNode(currentNode->x - 1, currentNode->y, currentNode, e_Direction::LEFT);
+				}
+				// 왼쪽 위
+				if (CheckTile(currentNode->x - 1, currentNode->y - 1))
+				{
+					MakeNode(currentNode->x - 1, currentNode->y - 1, currentNode, e_Direction::LEFTUP);
+				}
+				// 위
+				if (CheckTile(currentNode->x, currentNode->y - 1))
+				{
+					MakeNode(currentNode->x, currentNode->y - 1, currentNode, e_Direction::UP);
+				}
+				// 오른쪽 위
+				if (CheckTile(currentNode->x + 1, currentNode->y - 1))
+				{
+					MakeNode(currentNode->x + 1, currentNode->y - 1, currentNode, e_Direction::UPRIGHT);
+				}
+				// 오른쪽
+				if (CheckTile(currentNode->x + 1, currentNode->y))
+				{
+					MakeNode(currentNode->x + 1, currentNode->y, currentNode, e_Direction::RIGHT);
+				}
+				// 오른쪽 아래
+				if (CheckTile(currentNode->x + 1, currentNode->y + 1))
+				{
+					MakeNode(currentNode->x + 1, currentNode->y + 1, currentNode, e_Direction::RIGHTDOWN);
+				}
+				break;
+
+			// 아래
+			case e_Direction::DOWN:
+				if (CheckTile(currentNode->x, currentNode->y + 1))
+				{
+					MakeNode(currentNode->x, currentNode->y + 1, currentNode, e_Direction::DOWN);
+				}
+				break;
+
+			// 왼쪽 아래
+			case e_Direction::DOWNLEFT:
+				break;
+
+			// 왼쪽
+			case e_Direction::LEFT:
+				break;
+
+			// 왼쪽 위
+			case e_Direction::LEFTUP:
+				break;
+
+			// 위
+			case e_Direction::UP:
+				break;
+
+			// 오른쪽 위
+			case e_Direction::UPRIGHT:
+				break;
+
+			// 오른쪽
+			case e_Direction::RIGHT:
+				break;
+
+			// 오른쪽 아래
+			case e_Direction::RIGHTDOWN:
+				break;
+
+			
+			}
+		}
+	}
+}
+

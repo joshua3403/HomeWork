@@ -1,4 +1,4 @@
-#include "A-Star.h"
+ #include "A-Star.h"
 
 
 AStarPathFinding::AStarPathFinding()
@@ -152,7 +152,6 @@ void AStarPathFinding::PathOpened(int x, int y, float newG, NODE* parent)
 			}
 			else
 			{
-				delete newChild;
 				return;
 			}
 		}
@@ -263,7 +262,6 @@ void AStarPathFinding::ContinuePath()
 		}
 
 		ProcessWindowMessage();
-
 	}
 
 

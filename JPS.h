@@ -82,9 +82,13 @@ private:
 	NODE* GetNextNode();
 	// 특정 위치에 노드를 생성할 수 있는지 확인하는 함수
 	bool CheckTile(int x, int y);
-	// 점프 하고자 하는 위치가 코너인지 확인하는 함수
-	bool CheckJumpNode(int current_x, int current_y, e_Direction dir);
-	// 길찾기를 진행하는 함수
+	// 오픈 리스트에서 노드를 뽑아 목표와 같은지 확인하고 새로 노드를 만들어 오픈 리스트에 넣는 함수
+	void MakeNode(int current_x, int current_y, NODE* nowNode, e_Direction dir);
+	// 실질적인 서치 함수
+	bool JumpCheck(int current_x, int current_y, int* newX, int* newY, float currentG, float* newG, e_Direction dir);
+	bool CornerCheck(int current_x, int current_y, e_Direction dir);
+
+
 	void ContinueFindingPath();
 
 	POSITIONNODE m_NodeArray[100][100];
@@ -97,3 +101,5 @@ private:
 	std::vector<NODE*> m_vCloseList;
 	std::vector<POSITION*> m_vPathToGoal;
 };
+
+// 첫노드(부모가 없으면 8방향)
