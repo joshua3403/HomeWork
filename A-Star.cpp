@@ -6,6 +6,7 @@ AStarPathFinding::AStarPathFinding()
 	m_bInitializedStartGoal = false;
 	m_bFoundGoal = false;
 	InitialArray();
+	printf("%d", sizeof(NODE));
 }
 
 AStarPathFinding::~AStarPathFinding()
@@ -62,6 +63,17 @@ void AStarPathFinding::SetPointEnd(int x, int y, bool flag)
 	m_NodeArray[y][x].isEnd = flag;
 }
 
+void AStarPathFinding::ResetPoint()
+{
+	for (int i = 0; i < 100; i++)
+	{
+		for (int j = 0; j < 100; j++)
+		{
+			m_NodeArray[i][j].isBlock = false;
+		}
+	}
+}
+
 void AStarPathFinding::PrintBlock(HDC hdc)
 {
 	HBRUSH OldBrush;
@@ -113,6 +125,7 @@ void AStarPathFinding::PathOpened(int x, int y, float newG, NODE* parent)
 	if (x < 0 || x >= 100 || y < 0 || y >= 100)
 		return;
 
+
 	HBRUSH OldBrush;
 	HPEN OldPen;
 
@@ -121,18 +134,21 @@ void AStarPathFinding::PathOpened(int x, int y, float newG, NODE* parent)
 
 	NODE* newChild = new NODE(x, y, parent);
 	newChild->G = newG;
-	newChild->H = parent->ManHattanDistance(m_pGoalNode);
+	newChild->H = newChild->ManHattanDistance(m_pGoalNode);
+
+	//std::list<NODE*>::iterator itor = std::find(m_vOpenList.begin(), m_vOpenList, )
 
 	for (int i = 0; i < m_vOpenList.size(); i++)
 	{
 		if (id == m_vOpenList[i]->ID)
 		{
-			float newF = newChild->G + newG + m_vOpenList[i]->H;
+			float newF = newChild->G + m_vOpenList[i]->H;
 
 			if (m_vOpenList[i]->GetF() > newF)
 			{
 				m_vOpenList[i]->G = newChild->G + newG;
 				m_vOpenList[i]->Parent = newChild;
+				//ChangeParent(x, y, newChild);
 			}
 			else
 			{
@@ -142,11 +158,18 @@ void AStarPathFinding::PathOpened(int x, int y, float newG, NODE* parent)
 		}
 	}
 
-	if (newChild != nullptr)
+	for (int i = 0; i < m_vCloseList.size(); i++)
 	{
-		Rectangle(m_hdc, x * 10 + 1, y * 10 + 1, x * 10 + 10, y * 10 + 10);
-
+		if (id == m_vCloseList[i]->ID)
+		{
+			delete newChild;
+			return;
+		}
 	}
+
+
+	Rectangle(m_hdc, x * 10 + 1, y * 10 + 1, x * 10 + 10, y * 10 + 10);
+
 	SelectObject(m_hdc, MyPenYellow);
 	SelectObject(m_hdc, MyBrushYellow);
 
@@ -209,25 +232,25 @@ void AStarPathFinding::ContinuePath()
 			PathOpened(currentNode->x + 1, currentNode->y, currentNode->G + 1, currentNode);
 
 			// 오른쪽 아래
-			PathOpened(currentNode->x + 1, currentNode->y + 1, currentNode->G + 1.5f, currentNode);
+			PathOpened(currentNode->x + 1, currentNode->y + 1, currentNode->G + 1.4f, currentNode);
 
 			// 아래
 			PathOpened(currentNode->x, currentNode->y + 1, currentNode->G + 1, currentNode);
 
 			// 왼쪽 아래
-			PathOpened(currentNode->x - 1, currentNode->y + 1, currentNode->G + 1.5f, currentNode);
+			PathOpened(currentNode->x - 1, currentNode->y + 1, currentNode->G + 1.4f, currentNode);
 
 			// 왼쪽
 			PathOpened(currentNode->x - 1, currentNode->y, currentNode->G + 1, currentNode);
 
 			// 왼쪽 위
-			PathOpened(currentNode->x - 1, currentNode->y - 1, currentNode->G + 1.5f, currentNode);
+			PathOpened(currentNode->x - 1, currentNode->y - 1, currentNode->G + 1.4f, currentNode);
 
 			// 위
 			PathOpened(currentNode->x, currentNode->y - 1, currentNode->G + 1, currentNode);
 
 			// 오른쪽 위
-			PathOpened(currentNode->x + 1, currentNode->y - 1, currentNode->G + 1.5f, currentNode);
+			PathOpened(currentNode->x + 1, currentNode->y - 1, currentNode->G + 1.4f, currentNode);
 
 			for (int i = 0; i < m_vOpenList.size(); i++)
 			{
@@ -238,10 +261,14 @@ void AStarPathFinding::ContinuePath()
 			}
 
 		}
+
+		ProcessWindowMessage();
+
 	}
 
 
 }
+
 
 void AStarPathFinding::ClearVector()
 {
@@ -266,6 +293,9 @@ void AStarPathFinding::ClearVector()
 
 	m_vPathToGoal.clear();
 }
+
+
+
 
 void AStarPathFinding::SetDC(HDC hdc)
 {
@@ -298,4 +328,11 @@ void AStarPathFinding::InitialArray()
 			m_NodeArray[i][j].isBlock = m_NodeArray[i][j].isEnd = m_NodeArray[i][j].isStart = false;
 		}
 	}
+}
+
+void	AStarPathFinding::ProcessWindowMessage()
+{
+	MSG	msg;
+	while (::PeekMessage(&msg, NULL, NULL, NULL, PM_REMOVE))
+		::SendMessage(msg.hwnd, msg.message, msg.wParam, msg.lParam);
 }

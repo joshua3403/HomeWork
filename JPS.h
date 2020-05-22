@@ -77,11 +77,15 @@ public:
 private:
 	void SetStartAndGoal(NODE start, NODE goal);
 	void InitialArray();
+	// 오픈 리스트와, 클로즈 리스트, 루트 리스트 모두 초기화
+	void ClearVector();
 	NODE* GetNextNode();
 	// 특정 위치에 노드를 생성할 수 있는지 확인하는 함수
 	bool CheckTile(int x, int y);
 	// 점프 하고자 하는 위치가 코너인지 확인하는 함수
 	bool CheckJumpNode(int current_x, int current_y, e_Direction dir);
+	// 길찾기를 진행하는 함수
+	void ContinueFindingPath();
 
 	POSITIONNODE m_NodeArray[100][100];
 

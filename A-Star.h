@@ -34,7 +34,11 @@ typedef struct st_NODE
 	st_NODE() : Parent(nullptr){}
 	st_NODE(int current_x, int current_y, st_NODE* _parent = nullptr) : x(current_x), y(current_y), Parent(_parent),G(0), H(0), ID(x*CHECK + y) {};
 
-	float GetF() { return G + H; };
+	float GetF() 
+	{ 
+		F = G + H;
+		return G + H; 
+	};
 	float ManHattanDistance(st_NODE* endNode)
 	{
 		float x = (float)abs(endNode->x - this->x);
@@ -67,6 +71,7 @@ public:
 	std::vector<NODE*> GetCloseList();
 	std::vector<POSITION*> GetRout();
 	void ClearVector();
+	void ChangeParent(int x, int y, NODE* newNode);
 
 	bool m_bInitializedStartGoal;
 	bool m_bFoundGoal;
@@ -75,6 +80,7 @@ public:
 	void SetPointBlock(int x, int y, bool flag);
 	void SetPointStart(int x, int y, bool flag);
 	void SetPointEnd(int x, int y, bool flag);
+	void ResetPoint();
 
 	void PrintBlock(HDC hdc);
 
@@ -83,7 +89,6 @@ private:
 	void PathOpened(int x, int y, float newG, NODE* parent);
 	NODE* GetNextNode();
 	void ContinuePath();
-
 
 	POSITIONNODE m_NodeArray[100][100];
 
@@ -100,5 +105,7 @@ private:
 	std::vector<POSITION*> m_vPathToGoal;
 
 	void InitialArray();
+
+	void ProcessWindowMessage();
 
 };

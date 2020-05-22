@@ -86,6 +86,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	NODE* BestRoute = nullptr;
 	switch (msg)
 	{
+	case WM_KEYDOWN:
+		switch (wParam)
+		{
+		case VK_SPACE:
+			AStarPathFind.ResetPoint();
+			break;
+		}
+		InvalidateRect(hWnd, NULL, TRUE);
+		break;
 	case WM_LBUTTONDOWN:
 			bDrag = TRUE;
 	case WM_MOUSEMOVE:
@@ -114,6 +123,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		PrintGrid(hdc);
 		PrintStart(hdc);
+		PrintEnd(hdc);
+
 		AStarPathFind.PrintBlock(hdc);
 		// A Star Algoritm start
 		g_bAlgorithmStart = g_bEndClicked && g_bStartClicked;
@@ -122,7 +133,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			AStarPathFind.SetDC(hdc);
 			AStarPathFind.FindPath(g_iStartX, g_iStartY, g_iEndX, g_iEndY);
 			PrintOpen(hdc);
-
+			PrintEnd(hdc);
 		}
 		else
 		{
@@ -131,7 +142,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		g_bAlgorithmStart = !g_bAlgorithmStart;
 		PrintRoute(hdc);
 
-		PrintEnd(hdc);
 		EndPaint(hWnd, &ps);
 		break;
 
@@ -307,6 +317,10 @@ void PrintRoute(HDC hdc)
 		MoveToEx(hdc, temp[i + 1]->X * 10 + 5, temp[i + 1]->Y * 10 + 5, NULL);
 		LineTo(hdc, temp[i]->X * 10 + 5, temp[i]->Y * 10 + 5);
 	}
+
+	MoveToEx(hdc, g_iStartX * 10 + 5, g_iStartY * 10 + 5, NULL);
+	LineTo(hdc, (*(temp.end() - 1))->X * 10 + 5, (*(temp.end() - 1))->Y * 10 + 5);
+
 	SelectObject(hdc, OldPen);
 	SelectObject(hdc, OldBrush);
 }

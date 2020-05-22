@@ -7,6 +7,32 @@ CJPS::CJPS()
 	InitialArray();
 }
 
+void CJPS::FindPath(int start_x, int start_y, int end_x, int end_y)
+{
+	if (!m_bInitializedStartGoal)
+	{
+		ClearVector();
+
+		// 알고리즘 시작 전 초기화
+		NODE start;
+		start.x = start_x;
+		start.y = start_y;
+
+		NODE goal;
+		goal.x = end_x;
+		goal.y = end_y;
+
+		SetStartAndGoal(start, goal);
+		m_bInitializedStartGoal = true;
+	}
+	else
+	{
+		ContinueFindingPath();
+		m_bInitializedStartGoal = false;
+	}
+
+}
+
 void CJPS::SetStartAndGoal(NODE start, NODE goal)
 {
 	m_pStartNode = new NODE(start.x, start.y);
@@ -29,6 +55,30 @@ void CJPS::InitialArray()
 			m_NodeArray[i][j].isBlock = m_NodeArray[i][j].isEnd = m_NodeArray[i][j].isStart = false;
 		}
 	}
+}
+
+void CJPS::ClearVector()
+{
+	for (int i = 0; i < m_vOpenList.size(); i++)
+	{
+		delete m_vOpenList[i];
+	}
+
+	m_vOpenList.clear();
+
+	for (int i = 0; i < m_vCloseList.size(); i++)
+	{
+		delete m_vCloseList[i];
+	}
+
+	m_vCloseList.clear();
+
+	for (int i = 0; i < m_vPathToGoal.size(); i++)
+	{
+		delete m_vPathToGoal[i];
+	}
+
+	m_vPathToGoal.clear();
 }
 
 NODE* CJPS::GetNextNode()
