@@ -5,42 +5,29 @@ AStarPathFinding::AStarPathFinding()
 {
 	m_bInitializedStartGoal = false;
 	m_bFoundGoal = false;
+	m_bEndClicked = false;
+	m_bStartClicked = false;
+	m_iStartX = 0;
+	m_iStartY = 0;
+	m_iEndX = 0;
+	m_iEndY = 0;
 	InitialArray();
-	printf("%d", sizeof(NODE));
+	//printf("%d", sizeof(NODE));
 }
 
 AStarPathFinding::~AStarPathFinding()
 {
 	DeleteObject(MyBrushYellow);
 	DeleteObject(MyPenYellow);
+	DeleteObject(MyBrushGray);
+	DeleteObject(MyPenGray);
+	DeleteObject(MyBrushGreen);
+	DeleteObject(MyPenGreen);
+	DeleteObject(MyBrushRed);
+	DeleteObject(MyPenRed);
+	DeleteObject(MyBrushBlue);
+	DeleteObject(MyPenBlue);
 }
-
-void AStarPathFinding::FindPath(int current_x, int current_y, int end_x, int end_y)
-{
-	if (!m_bInitializedStartGoal)
-	{
-		ClearVector();
-
-		// 알고리즘 시작 전 초기화
-		NODE start;
-		start.x = current_x;
-		start.y = current_y;
-
-		NODE goal;
-		goal.x = end_x;
-		goal.y = end_y;
-
-		SetStartAndGoal(start, goal);
-		m_bInitializedStartGoal = true;
-	}
-
-	if (m_bInitializedStartGoal)
-	{
-		ContinuePath();
-		m_bInitializedStartGoal = !m_bInitializedStartGoal;
-	}
-}
-
 
 void AStarPathFinding::SetPointBlock(int x, int y)
 {
@@ -55,12 +42,42 @@ void AStarPathFinding::SetPointBlock(int x, int y, bool flag)
 
 void AStarPathFinding::SetPointStart(int x, int y, bool flag)
 {
+	if (flag)
+	{
+		m_iStartX = x;
+		m_iStartY = y;
+	}
 	m_NodeArray[y][x].isStart = flag;
 }
 
 void AStarPathFinding::SetPointEnd(int x, int y, bool flag)
 {
+	if (flag)
+	{
+		m_iEndX = x;
+		m_iEndY = y;
+	}
 	m_NodeArray[y][x].isEnd = flag;
+}
+
+void AStarPathFinding::SetEndIsClicked(bool flag)
+{
+	m_bEndClicked = flag;
+}
+
+void AStarPathFinding::SetStartIsClicked(bool flag)
+{
+	m_bStartClicked = flag;
+}
+
+bool AStarPathFinding::GetStartIsClicked()
+{
+	return m_bStartClicked;
+}
+
+bool AStarPathFinding::GetEndIsClicked()
+{
+	return m_bEndClicked;
 }
 
 void AStarPathFinding::ResetPoint()
@@ -92,6 +109,79 @@ void AStarPathFinding::PrintBlock(HDC hdc)
 		}
 	}
 
+	SelectObject(hdc, OldPen);
+	SelectObject(hdc, OldBrush);
+}
+
+void AStarPathFinding::PrintStart(HDC hdc)
+{
+	HBRUSH OldBrush;
+	HPEN OldPen;
+
+	OldPen = (HPEN)SelectObject(hdc, MyPenGreen);
+	OldBrush = (HBRUSH)SelectObject(hdc, MyBrushGreen);
+
+	if (m_bStartClicked)
+	{
+		Rectangle(hdc, m_iStartX * 10 + 1, m_iStartY * 10 + 1, m_iStartX * 10 + 10, m_iStartY * 10 + 10);
+	}
+
+	SelectObject(hdc, OldPen);
+	SelectObject(hdc, OldBrush);
+}
+
+
+void AStarPathFinding::PrintOpen(HDC hdc)
+{
+	HBRUSH OldBrush;
+	HPEN OldPen;
+
+	OldPen = (HPEN)SelectObject(hdc, MyBrushBlue);
+	OldBrush = (HBRUSH)SelectObject(hdc, MyPenBlue);
+	for (std::vector<NODE*>::iterator itor = m_vOpenList.begin(); itor != m_vOpenList.end(); itor++)
+	{
+		Rectangle(hdc, (*itor)->x * 10 + 1, (*itor)->y * 10 + 1, (*itor)->x * 10 + 10, (*itor)->y * 10 + 10);
+	}
+	SelectObject(hdc, OldPen);
+	SelectObject(hdc, OldBrush);
+}
+
+void AStarPathFinding::PrintRoute(HDC hdc)
+{
+	HBRUSH OldBrush;
+	HPEN OldPen;
+
+	OldPen = (HPEN)SelectObject(hdc, MyPenRed);
+	OldBrush = (HBRUSH)SelectObject(hdc, MyBrushRed);
+
+	if (m_vPathToGoal.size() <= 0)
+		return;
+	for (int i = 0; i < m_vPathToGoal.size() - 1; i++)
+	{
+		MoveToEx(hdc, m_vPathToGoal[i + 1]->X * 10 + 5, m_vPathToGoal[i + 1]->Y * 10 + 5, NULL);
+		LineTo(hdc, m_vPathToGoal[i]->X * 10 + 5, m_vPathToGoal[i]->Y * 10 + 5);
+	}
+
+	MoveToEx(hdc, m_pStartNode->x * 10 + 5, m_pStartNode->y * 10 + 5, NULL);
+	LineTo(hdc, (*(m_vPathToGoal.end() - 1))->X * 10 + 5, (*(m_vPathToGoal.end() - 1))->Y * 10 + 5);
+
+	SelectObject(hdc, OldPen);
+	SelectObject(hdc, OldBrush);
+}
+
+void AStarPathFinding::PrintEnd(HDC hdc)
+{
+	HBRUSH OldBrush;
+	HPEN OldPen;
+
+
+	OldPen = (HPEN)SelectObject(hdc, MyPenRed);
+	OldBrush = (HBRUSH)SelectObject(hdc, MyBrushRed);
+
+	if (m_bEndClicked)
+	{
+		Rectangle(hdc, m_iEndX * 10 + 1, m_iEndY * 10 + 1, m_iEndX * 10 + 10, m_iEndY * 10 + 10);
+	}
 	SelectObject(hdc, OldPen);
 	SelectObject(hdc, OldBrush);
 }
@@ -152,6 +242,7 @@ void AStarPathFinding::PathOpened(int x, int y, float newG, NODE* parent)
 			}
 			else
 			{
+				delete newChild;
 				return;
 			}
 		}
@@ -333,4 +424,49 @@ void	AStarPathFinding::ProcessWindowMessage()
 	MSG	msg;
 	while (::PeekMessage(&msg, NULL, NULL, NULL, PM_REMOVE))
 		::SendMessage(msg.hwnd, msg.message, msg.wParam, msg.lParam);
+}
+
+
+void AStarPathFinding::SaveMap()
+{
+
+	FILE* file = nullptr;
+	file = fopen("Map.txt", "w");
+	for (int y = 0; y < 100; y++)
+	{
+		for (int x = 0; x < 100; x++)
+		{
+			fprintf(file, "%d", m_NodeArray[y][x].isBlock);
+		}
+		fprintf(file, "\n");
+	}
+	fclose(file);
+
+}
+
+void AStarPathFinding::LoadMap()
+{
+	FILE* file = nullptr;
+	file = fopen("Map.txt", "r");
+	char* temp = (char*)malloc(sizeof(char) * 10100);
+
+	fread(temp, 1, 10100, file);
+
+	int i = 0;
+
+	for (int y = 0; y < 100; y++)
+	{
+		for (int x = 0; x < 100; x++)
+		{
+			if (temp[i] == '0')
+				m_NodeArray[y][x].isBlock = false;
+			else
+				m_NodeArray[y][x].isBlock = true;
+
+			i++;
+		}
+		i++;
+	}
+	free(temp);
+	fclose(file);
 }

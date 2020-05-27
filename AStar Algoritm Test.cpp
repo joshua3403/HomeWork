@@ -16,25 +16,13 @@ bool g_bIsStartDeleted = false;
 bool g_bEndClicked = false;
 bool g_bStartClicked = false;
 int g_iEndX = 0, g_iEndY = 0, g_iStartX = 0, g_iStartY = 0;
-POSITIONNODE* g_NodeBlock = nullptr;
 bool g_bAlgorithmStart = false;
 
 
-HBRUSH MyBrushGreen = CreateSolidBrush(RGB(0, 255, 0));
-HPEN MyPenGreen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
-HBRUSH MyBrushRed = CreateSolidBrush(RGB(255, 0, 0));
-HPEN MyPenRed = CreatePen(PS_SOLID, 3, RGB(255, 0, 0));
 
-HBRUSH MyBrushBlue = CreateSolidBrush(RGB(0, 0, 255));
-HPEN MyPenBlue = CreatePen(PS_SOLID, 1, RGB(0, 0, 255));
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 void PrintGrid(HDC hdc);
-void PrintStart(HDC hdc);
-void PrintEnd(HDC hdc);
-void PrintOpen(HDC hdc);
-
-void PrintRoute(HDC hdc);
 AStarPathFinding AStarPathFind;
 
 int main()
@@ -107,7 +95,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if (prevPositionX != positionX || prevPositionY != positionY)
 					{
 						AStarPathFind.SetPointBlock(positionX, positionY);
-						//printf("prev : %d %d %d\n", (*g_NodeBlock).x, (*g_NodeBlock).y, (*g_NodeBlock).isBlock);
 						InvalidateRect(hWnd, NULL, TRUE);
 					}
 				}
@@ -122,8 +109,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		hdc = BeginPaint(hWnd, &ps);
 
 		PrintGrid(hdc);
-		PrintStart(hdc);
-		PrintEnd(hdc);
+
 
 		AStarPathFind.PrintBlock(hdc);
 		// A Star Algoritm start
@@ -132,15 +118,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			AStarPathFind.SetDC(hdc);
 			AStarPathFind.FindPath(g_iStartX, g_iStartY, g_iEndX, g_iEndY);
-			PrintOpen(hdc);
-			PrintEnd(hdc);
+
 		}
 		else
 		{
 			AStarPathFind.ClearVector();
 		}
 		g_bAlgorithmStart = !g_bAlgorithmStart;
-		PrintRoute(hdc);
 
 		EndPaint(hWnd, &ps);
 		break;
@@ -151,18 +135,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		if (positionY < 100 && positionX < 100)
 		{
 			// 이미 클릭된 곳이 존재한 상태라면
-			if (g_bEndClicked)
+			if (AStarPathFind.GetEndIsClicked())
 			{
 				if (g_iEndX == positionX && g_iEndY == positionY)
 				{
 					AStarPathFind.SetPointEnd(positionX, positionY, false);
-					g_bEndClicked = false;
+					AStarPathFind.SetEndIsClicked(false);
 				}
 				else
 				{
 					AStarPathFind.SetPointEnd(g_iEndX, g_iEndY, false);
 					AStarPathFind.SetPointEnd(positionX, positionY, true);
-					g_bEndClicked = true;
+					AStarPathFind.SetEndIsClicked(true);
 					g_iEndY = positionY;
 					g_iEndX = positionX;
 				}
@@ -170,7 +154,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			else
 			{
 				AStarPathFind.SetPointEnd(positionX, positionY, true);
-				g_bEndClicked = true;
+				AStarPathFind.SetEndIsClicked(true);
 				g_iEndY = positionY;
 				g_iEndX = positionX;
 			}
@@ -183,13 +167,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		if (positionY < 100 && positionX < 100)
 		{
 			// 이미 클릭된 곳이 존재한 상태라면
-			if (g_bStartClicked)
+			if (AStarPathFind.GetStartIsClicked())
 			{
 				if (g_iStartX == positionX && g_iStartY == positionY)
 				{
 					AStarPathFind.SetPointStart(positionX, positionY, false);
 					AStarPathFind.SetPointBlock(positionX, positionY, false);
-					g_bStartClicked = false;
+					AStarPathFind.SetStartIsClicked(false);
 				}
 				else
 				{
@@ -198,14 +182,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					AStarPathFind.SetPointBlock(positionX, positionY, false);
 					g_iStartX = positionX;
 					g_iStartY = positionY;
-					g_bStartClicked = true;
+					AStarPathFind.SetStartIsClicked(true);
 				}
 			}
 			else
 			{
 				AStarPathFind.SetPointStart(g_iStartX, g_iStartY, true);
 				AStarPathFind.SetPointBlock(positionX, positionY, false);
-				g_bStartClicked = true;
+				AStarPathFind.SetStartIsClicked(true);
 				g_iStartX = positionX;
 				g_iStartY = positionY;
 			}
@@ -214,12 +198,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_DESTROY:
-
-
-		DeleteObject(MyPenGreen);
-		DeleteObject(MyBrushGreen);
-		DeleteObject(MyBrushRed);
-		DeleteObject(MyPenRed);
 
 		PostQuitMessage(0);
 		break;
@@ -246,82 +224,4 @@ void PrintGrid(HDC hdc)
 	}
 }
 
-void PrintStart(HDC hdc)
-{
-	HBRUSH OldBrush;
-	HPEN OldPen;
-
-	OldPen = (HPEN)SelectObject(hdc, MyPenGreen);
-	OldBrush = (HBRUSH)SelectObject(hdc, MyBrushGreen);
-	
-	if (g_bStartClicked)
-	{
-		Rectangle(hdc, g_iStartX * 10 + 1, g_iStartY * 10 + 1, g_iStartX * 10 + 10, g_iStartY * 10 + 10);
-	}
-
-	SelectObject(hdc, OldPen);
-	SelectObject(hdc, OldBrush);
-
-
-}
-
-void PrintEnd(HDC hdc)
-{
-	HBRUSH OldBrush;
-	HPEN OldPen;
-
-
-	OldPen = (HPEN)SelectObject(hdc, MyPenRed);
-	OldBrush = (HBRUSH)SelectObject(hdc, MyBrushRed);
-
-	if (g_bEndClicked)
-	{
-		Rectangle(hdc, g_iEndX * 10 + 1, g_iEndY * 10 + 1, g_iEndX * 10 + 10, g_iEndY * 10 + 10);
-	}
-	SelectObject(hdc, OldPen);
-	SelectObject(hdc, OldBrush);
-}
-
-
-
-void PrintOpen(HDC hdc)
-{
-	HBRUSH OldBrush;
-	HPEN OldPen;
-
-	OldPen = (HPEN)SelectObject(hdc, MyBrushBlue);
-	OldBrush = (HBRUSH)SelectObject(hdc, MyPenBlue);
-	std::vector<NODE*>temp = AStarPathFind.GetOpenList();
-	for (std::vector<NODE*>::iterator itor = temp.begin(); itor != temp.end(); itor++)
-	{
-		Rectangle(hdc, (*itor)->x * 10 + 1, (*itor)->y * 10 + 1, (*itor)->x * 10 + 10, (*itor)->y * 10 + 10);
-	}
-	SelectObject(hdc, OldPen);
-	SelectObject(hdc, OldBrush);
-}
-
-
-void PrintRoute(HDC hdc)
-{
-	HBRUSH OldBrush;
-	HPEN OldPen;
-
-	OldPen = (HPEN)SelectObject(hdc, MyPenRed);
-	OldBrush = (HBRUSH)SelectObject(hdc, MyBrushRed);
-
-	std::vector<POSITION*>temp = AStarPathFind.GetRout();
-	if (temp.size() <= 0)
-		return;
-	for (int i = 0; i < temp.size() - 1; i++)
-	{
-		MoveToEx(hdc, temp[i + 1]->X * 10 + 5, temp[i + 1]->Y * 10 + 5, NULL);
-		LineTo(hdc, temp[i]->X * 10 + 5, temp[i]->Y * 10 + 5);
-	}
-
-	MoveToEx(hdc, g_iStartX * 10 + 5, g_iStartY * 10 + 5, NULL);
-	LineTo(hdc, (*(temp.end() - 1))->X * 10 + 5, (*(temp.end() - 1))->Y * 10 + 5);
-
-	SelectObject(hdc, OldPen);
-	SelectObject(hdc, OldBrush);
-}
 

@@ -154,6 +154,37 @@ namespace Joshua {
 			return true;
 		}
 
+		double GetTime(const TCHAR* workName)
+		{
+			LARGE_INTEGER End;
+			QueryPerformanceCounter(&End);
+			LARGE_INTEGER Freq;
+			QueryPerformanceFrequency(&Freq);
+			Node* nowNode = head;
+
+			while (nowNode != nullptr)
+			{
+				if (_tcscmp(nowNode->szName, workName) == 0)
+					break;
+				else
+				{
+					nowNode = nowNode->Next;
+				}
+			}
+
+			if (nowNode == nullptr)
+			{
+				throw 1;
+			}
+
+			double processTime = (double)(End.QuadPart - nowNode->lStartTime.QuadPart) / (double)(Freq.QuadPart);
+
+
+			nowNode->GetProcessTime(processTime);
+
+			return processTime;
+		}
+
 		void ProfileDataOutText()
 		{
 			time_t now = time(NULL);
