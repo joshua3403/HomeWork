@@ -152,7 +152,7 @@
     <ClCompile Include="AStar Algoritm Test.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="JPS Test.cpp" />
+    <ClCompile Include="AStar, JPS Test.cpp" />
     <ClCompile Include="JPS.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

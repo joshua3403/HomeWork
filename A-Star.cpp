@@ -444,13 +444,13 @@ void AStarPathFinding::SaveMap()
 
 }
 
-void AStarPathFinding::LoadMap()
+void AStarPathFinding::LoadMap(const char* temp)
 {
 	FILE* file = nullptr;
-	file = fopen("Map.txt", "r");
-	char* temp = (char*)malloc(sizeof(char) * 10100);
+	file = fopen(temp, "r");
+	char* buffer = (char*)malloc(sizeof(char) * 10100);
 
-	fread(temp, 1, 10100, file);
+	fread(buffer, 1, 10100, file);
 
 	int i = 0;
 
@@ -458,7 +458,7 @@ void AStarPathFinding::LoadMap()
 	{
 		for (int x = 0; x < 100; x++)
 		{
-			if (temp[i] == '0')
+			if (buffer[i] == '0')
 				m_NodeArray[y][x].isBlock = false;
 			else
 				m_NodeArray[y][x].isBlock = true;
@@ -467,6 +467,16 @@ void AStarPathFinding::LoadMap()
 		}
 		i++;
 	}
-	free(temp);
+	free(buffer);
 	fclose(file);
+}
+
+void AStarPathFinding::RandomMap()
+{
+	for (int i = 0; i < 3000; i++)
+	{
+		int x = rand() % 100;
+		int y = rand() % 100;
+		m_NodeArray[y][x].isBlock = true;
+	}
 }

@@ -64,7 +64,8 @@ public:
 	void PrintEnd(HDC hdc);
 
 	void SaveMap();
-	void LoadMap();
+	void LoadMap(const char* temp);
+	void RandomMap();
 
 private:
 	void SetStartAndGoal(NODE start, NODE goal);

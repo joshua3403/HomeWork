@@ -46,7 +46,8 @@ public:
 	void ClearVector();
 	void PrintRouteBresenham(HDC hdc);
 	void SaveMap();
-	void LoadMap();
+	void LoadMap(const char* temp);
+	void RandomMap();
 	//bool BresenHam(int start_x, int start_y, int end_x, int end_y);
 
 private:

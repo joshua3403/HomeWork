@@ -30,6 +30,8 @@ Joshua::List TimeList;
 
 int main()
 {
+	srand((unsigned int)time(NULL));
+
 	WNDCLASS wndclass;
 	wndclass.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
 	wndclass.lpfnWndProc = WndProc;
@@ -74,10 +76,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	static int prevPositionY = 0, prevPositionX = 0;
 	static BOOL bDrag = FALSE;
 	NODE* BestRoute = nullptr;
-	static HWND c1, c2, c3;
+	static HWND c1, c2, c3, c4;
 	double time = 0;
 	TCHAR stringtemp[64] = { '\0' };
 	HFONT oldFont;
+	char string[64] = { '\0' };
 
 	switch (msg)
 	{
@@ -94,11 +97,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		CreateWindow(L"button", L"Save Map", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
 			1100, 480, 100, 100, hWnd, (HMENU)3, NULL, NULL);
 
-		CreateWindow(L"button", L"Load Map", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+		CreateWindow(L"button", L"Snail", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
 			1250, 480, 100, 100, hWnd, (HMENU)4, NULL, NULL);
 
-		CreateWindow(L"button", L"Clear Block", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+		CreateWindow(L"button", L"Puzzle", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
 			1400, 480, 100, 100, hWnd, (HMENU)5, NULL, NULL);
+
+		CreateWindow(L"button", L"Random", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+			1550, 480, 100, 100, hWnd, (HMENU)6, NULL, NULL);
+
+		CreateWindow(L"button", L"Clear Block", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+			1700, 480, 100, 100, hWnd, (HMENU)7, NULL, NULL);
 
 		c1 = CreateWindow(L"button", L"A Star", WS_CHILD | WS_VISIBLE |
 			BS_CHECKBOX, 1150, 70, 200, 25, hWnd, (HMENU)101, NULL, NULL);
@@ -109,6 +118,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		c3 = CreateWindow(L"button", L"Bresenham", WS_CHILD | WS_VISIBLE |
 			BS_CHECKBOX, 1150, 330, 200, 25, hWnd, (HMENU)103, NULL, NULL);
 
+		c4 = CreateWindow(L"button", L"Manhatan", WS_CHILD | WS_VISIBLE |
+			BS_CHECKBOX, 1150, 200, 200, 25, hWnd, (HMENU)104, NULL, NULL);
+
+		SendMessage(c4, BM_SETCHECK, BST_CHECKED, 0);
 
 		break;
 
@@ -123,12 +136,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 		case 4:
 			if (g_bAStar)
-				AStarPathFind.LoadMap();
+				AStarPathFind.LoadMap("Snail.txt");
 			if (g_bJPS)
-				JPSPathFinding.LoadMap();
+				JPSPathFinding.LoadMap("Snail.txt");
 			InvalidateRect(hWnd, NULL, TRUE);
 			break;
-		case 5:
+		case 6:
+			if (g_bAStar)
+				AStarPathFind.RandomMap();
+			if (g_bJPS)
+				JPSPathFinding.RandomMap();
+			InvalidateRect(hWnd, NULL, false);
+			break;
+		case 7:
 			if (g_bAStar)
 				AStarPathFind.ResetPoint();
 			if (g_bJPS)
@@ -181,8 +201,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 		}
 		break;
-
-
 	case WM_KEYDOWN:
 		switch (wParam)
 		{
@@ -240,10 +258,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				JPSPathFinding.PrintRoute(hdc);
 				oldFont = (HFONT)SelectObject(hdc, _hFont);
 				time = TimeList.GetTime(L"JPS");
-				time = (int)(time * 1000000);
-				time = floor(time);
-				wsprintf(stringtemp, TEXT("Exceed Time : %d.%d second"), (int)(time / 1000000),(int)((int)time%1000000));
+
+				printf("%.6f\n", time);
+				wsprintf(stringtemp, TEXT("Exceed Time : %d second(will be fixed)"), time);
 				TextOut(hdc, 1100, 630, stringtemp, _tcslen(stringtemp));
+
 				SelectObject(hdc, oldFont);
 			}
 			else
@@ -269,9 +288,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				AStarPathFind.PrintRoute(hdc);
 				oldFont = (HFONT)SelectObject(hdc, _hFont);
 				time = TimeList.GetTime(L"AStar");
-				time = (int)(time * 1000000);
-				time = floor(time);
-				wsprintf(stringtemp, TEXT("Exceed Time : %d.%d second"), (int)(time / 1000000), (int)((int)time % 1000000));
+				printf("%.6f\n", time);
+
+				wsprintf(stringtemp, TEXT("Exceed Time : %d second(will be fixed)"), time);
 				TextOut(hdc, 1100, 630, stringtemp, _tcslen(stringtemp));
 				SelectObject(hdc, oldFont);
 			}

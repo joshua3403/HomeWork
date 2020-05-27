@@ -114,6 +114,22 @@ namespace Joshua {
 				tail->Next = newNode;
 			}
 
+			Node* temp = head;
+			while (temp != nullptr)
+			{
+				if (_tcscmp(temp->szName, workName) == 0)
+				{
+					QueryPerformanceCounter(&startTime);
+					temp->lStartTime = startTime;
+					break;
+				}
+				else
+				{
+					temp = temp->Next;
+				}
+			}
+
+
 			tail = newNode;
 			iListSize++;
 
