@@ -163,7 +163,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				g_bAStar = true;
 				g_bJPS = false;
 				JPSPathFinding.ResetPoint();
-
+				SendMessage(c3, BM_SETCHECK, BST_UNCHECKED, 0);
+				g_bBresenham = false;
 			}
 			else
 			{
@@ -191,7 +192,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case 103:
 			if (SendMessage(c3, BM_GETCHECK, 0, 0) == BST_UNCHECKED)
 			{
-				SendMessage(c3, BM_SETCHECK, BST_CHECKED, 0);
+				if (g_bAStar)
+				{
+					SendMessage(c3, BM_SETCHECK, BST_UNCHECKED, 0);
+					g_bBresenham = false;
+				}
+				else
+					SendMessage(c3, BM_SETCHECK, BST_CHECKED, 0);
 				g_bBresenham = true;
 			}
 			else

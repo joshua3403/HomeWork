@@ -135,6 +135,7 @@ void AStarPathFinding::PrintOpen(HDC hdc)
 {
 	HBRUSH OldBrush;
 	HPEN OldPen;
+	
 
 	OldPen = (HPEN)SelectObject(hdc, MyBrushBlue);
 	OldBrush = (HBRUSH)SelectObject(hdc, MyPenBlue);
