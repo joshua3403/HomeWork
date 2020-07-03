@@ -13,12 +13,16 @@ unsigned int WINAPI DecreaseConnect(LPVOID lpParam);
 unsigned int WINAPI IncreaseData(LPVOID lpParam);
 
 void PlusData(void);
-//void PrintData(void);
+void PrintData(void);
 // 동기화 객체
 //CRITICAL_SECTION hCriticalSection;
 SRWLOCK hSrwLock;
 int main()
 {
+	// 스레드 생성 전에 동기화 객체를 초기화 하자
+	//InitializeCriticalSection(&hCriticalSection);
+
+	InitializeSRWLock(&hSrwLock);
 	timeBeginPeriod(1);
 	DWORD starttime = timeGetTime();
 	threadHandle[0] = (HANDLE)_beginthreadex(NULL, 0, IncreaseConnect, NULL, 0, (unsigned*)&threadID[0]);
@@ -26,8 +30,6 @@ int main()
 	threadHandle[2] = (HANDLE)_beginthreadex(NULL, 0, IncreaseData, NULL, 0, (unsigned*)&threadID[2]);
 	threadHandle[3] = (HANDLE)_beginthreadex(NULL, 0, IncreaseData, NULL, 0, (unsigned*)&threadID[3]);
 	threadHandle[4] = (HANDLE)_beginthreadex(NULL, 0, IncreaseData, NULL, 0, (unsigned*)&threadID[4]);
-	//InitializeCriticalSection(&hCriticalSection);
-	InitializeSRWLock(&hSrwLock);
 	DWORD flag = timeGetTime();
 	while (true)
 	{
@@ -77,7 +79,6 @@ unsigned int __stdcall DecreaseConnect(LPVOID lpParam)
 		Sleep(time);
 		InterlockedDecrement((LONG*)&g_Connect);
 		//wprintf(L"decrease %d\n", g_Connect);
-
 	}
 
 	return 0;
@@ -89,7 +90,7 @@ unsigned int __stdcall IncreaseData(LPVOID lpParam)
 	{
 		Sleep(10);
 		PlusData();
-		//PrintData();
+		PrintData();
 	}
 
 	return 0;
@@ -100,20 +101,18 @@ void PlusData(void)
 	//EnterCriticalSection(&hCriticalSection);
 	AcquireSRWLockExclusive(&hSrwLock);
 	g_Data++;
-
-	if (g_Data % 1000 == 0)
-		wprintf(L"g_Data : %d\n", g_Data);
-
 	ReleaseSRWLockExclusive(&hSrwLock);
 
 	//LeaveCriticalSection(&hCriticalSection);
+
+	// 이 방법으로 하면 동기화 객체를 사용 안해도 된다
+	//InterlockedIncrement((LONG*)&g_Connect);
 }
-//
-//void PrintData(void)
-//{	
-//	AcquireSRWLockShared(&hSrwLock);
-//	if (g_Data % 1000 == 0)
-//		wprintf(L"g_Data : %d\n", g_Data);
-//	ReleaseSRWLockShared(&hSrwLock);
-//
-//}
+
+void PrintData(void)
+{	
+	AcquireSRWLockShared(&hSrwLock);
+	if (g_Data % 1000 == 0)
+		wprintf(L"g_Data : %d\n", g_Data);
+	ReleaseSRWLockShared(&hSrwLock);
+}
