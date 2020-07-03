@@ -13,7 +13,7 @@ unsigned int WINAPI DecreaseConnect(LPVOID lpParam);
 unsigned int WINAPI IncreaseData(LPVOID lpParam);
 
 void PlusData(void);
-void PrintData(void);
+//void PrintData(void);
 // µø±‚»≠ ∞¥√º
 //CRITICAL_SECTION hCriticalSection;
 SRWLOCK hSrwLock;
@@ -108,12 +108,12 @@ void PlusData(void)
 
 	//LeaveCriticalSection(&hCriticalSection);
 }
-
-void PrintData(void)
-{	
-	AcquireSRWLockShared(&hSrwLock);
-	if (g_Data % 1000 == 0)
-		wprintf(L"g_Data : %d\n", g_Data);
-	ReleaseSRWLockShared(&hSrwLock);
-
-}
+//
+//void PrintData(void)
+//{	
+//	AcquireSRWLockShared(&hSrwLock);
+//	if (g_Data % 1000 == 0)
+//		wprintf(L"g_Data : %d\n", g_Data);
+//	ReleaseSRWLockShared(&hSrwLock);
+//
+//}
