@@ -3,7 +3,7 @@
 std::list<int> g_List;
 
 HANDLE threadHandle[6];
-HANDLE EventHandle[2];
+HANDLE EventHandle[3];
 
 DWORD threadID[6];
 BOOL g_bShutDown = false;
@@ -36,6 +36,7 @@ int main()
 	// 자동 리셋 이벤트
 	EventHandle[0] = CreateEvent(NULL, FALSE, FALSE, NULL);
 	EventHandle[1] = CreateEvent(NULL, FALSE, FALSE, NULL);
+	EventHandle[2] = CreateEvent(NULL, FALSE, FALSE, NULL);
 
 
 
@@ -71,7 +72,7 @@ int main()
 	{
 		CloseHandle(threadHandle[i]);
 	}
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 3; i++)
 	{
 		CloseHandle(EventHandle[i]);
 	}
@@ -86,16 +87,16 @@ unsigned int __stdcall InsertList(LPVOID lpParam)
 {
 	DWORD threadID = GetCurrentThreadId();
 	srand(threadID);
-	DWORD time = timeGetTime();
 	int num = 0;
+	DWORD result;
 	while (!g_bShutDown)
 	{
-		if (time + 1000 < timeGetTime())
+		result = WaitForSingleObject(EventHandle[2], 1000);
+
+		if (result == WAIT_TIMEOUT)
 		{
 			num = rand() % 1000;
 			Insert(num);
-			//PrintInsert(threadID, num);
-			time = timeGetTime();
 		}
 	}
 
@@ -104,13 +105,14 @@ unsigned int __stdcall InsertList(LPVOID lpParam)
 
 unsigned int __stdcall DeleteList(LPVOID lpParam)
 {
-	DWORD time = timeGetTime();
+	DWORD result;
+
 	while (!g_bShutDown)
 	{
-		if (time + 333 < timeGetTime())
+		result = WaitForSingleObject(EventHandle[2], 333);
+		if (result == WAIT_TIMEOUT)
 		{
 			Delete();
-			time = timeGetTime();
 		}
 	}
 
@@ -150,15 +152,14 @@ unsigned int __stdcall SaveList(LPVOID lpParam)
 
 unsigned int __stdcall PrintList(LPVOID lpParam)
 {
-	DWORD time = timeGetTime();
+	DWORD result;
 	while (!g_bShutDown)
 	{
-		if (time + 1000 < timeGetTime())
+		result = WaitForSingleObject(EventHandle[2], 1000);
+
+		if (result == WAIT_TIMEOUT)
 		{
 			PrintList();
-
-			time = timeGetTime();
-
 		}
 	}
 
