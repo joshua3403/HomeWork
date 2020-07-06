@@ -1,5 +1,9 @@
 #include "stdafx.h"
 
+// srwlock으로 변경하자
+// 저장할 데이터의 사본을 만들고 동기화를 풀고 실제 세이브를 진행하라.(메모리 낭비)
+//
+
 std::list<int> g_List;
 
 HANDLE threadHandle[6];
@@ -37,8 +41,6 @@ int main()
 	EventHandle[0] = CreateEvent(NULL, FALSE, FALSE, NULL);
 	EventHandle[1] = CreateEvent(NULL, FALSE, FALSE, NULL);
 	EventHandle[2] = CreateEvent(NULL, FALSE, FALSE, NULL);
-
-
 
 	threadHandle[0] = (HANDLE)_beginthreadex(NULL, 0, InsertList, NULL, 0, (unsigned*)&threadID[0]);
 	threadHandle[1] = (HANDLE)_beginthreadex(NULL, 0, InsertList, NULL, 0, (unsigned*)&threadID[1]);
