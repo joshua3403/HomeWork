@@ -36,7 +36,8 @@ DWORD next_game_tick = timeGetTime();
 const int SKIP_TICKS = 1000 / 50;
 DWORD _AccumulTime = 0;
 int _Balance = 0;
-
+BOOL Flag = FALSE;
+BOOL Flag2 = FALSE;
 BOOL g_bQuit = false;
 
 SRWLOCK hListLock;
@@ -186,7 +187,7 @@ void CreateQuitMessage()
 	st_MSG_HEAD Message;
 	Message.shType = dfTYPE_QUIT;
 	g_msgQ.SrwExcluciveLock();
-	for(int i = 0 ; i < 3; i++)
+	for(int i = 0 ; i < 1; i++)
 		g_msgQ.Enqueue((char*)&Message, sizeof(Message));
 	g_msgQ.SrwExcluciveRelease();
 	SetEvent(EventHandle[0]);
@@ -197,8 +198,6 @@ unsigned int __stdcall ThreadProc(LPVOID lpParam)
 	wprintf(L"Thread Started, ID : %d\n", GetCurrentThreadId());
 
 	DWORD result = 0;
-	BOOL Flag = FALSE;
-	BOOL Flag2= FALSE;
 	st_MSG_HEAD message;
 
 	while (!Flag)
@@ -235,7 +234,6 @@ unsigned int __stdcall ThreadProc(LPVOID lpParam)
 				case dfTYPE_QUIT:
 					Flag = TRUE;
 					Flag2 = TRUE;
-					SetEvent(EventHandle[0]);
 					break;
 				default:
 					break;
@@ -245,6 +243,9 @@ unsigned int __stdcall ThreadProc(LPVOID lpParam)
 		}	
 
 	}
+
+	SetEvent(EventHandle[0]);
+
 	return 0;
 }
 
